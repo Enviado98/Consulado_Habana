@@ -1,8 +1,11 @@
-/* news_styles.css */
+/* news_styles.css - VERSIÓN MINIMALISTA Y COMPACTA */
+
+/* --- VARIABLES (Asumiendo que se heredan de styles.css) --- */
+/* (Se mantiene el uso de variables como --color-principal) */
+
 
 /* --- GENERAL & HEADER STYLES --- */
 
-/* Asegura que el contenedor principal de la página de noticias use el fondo general */
 body {
     background-color: var(--color-fondo-principal); 
     color: var(--color-texto-principal);
@@ -14,352 +17,170 @@ body {
 .news-header {
     background-color: var(--color-principal);
     color: white;
-    padding: 30px 20px 20px;
+    padding: 25px 20px 15px; /* Menos padding vertical */
     text-align: center;
     position: relative;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
 }
 
 .news-header h1 {
-    font-size: 2.2em;
-    margin-bottom: 5px;
+    font-size: 2.0em; /* Reducido de 2.2em */
+    margin-bottom: 3px;
 }
 
 .news-header p {
-    font-size: 1.1em;
+    font-size: 1.0em; /* Reducido de 1.1em */
     opacity: 0.9;
     margin-top: 0;
 }
 
 .back-btn {
     position: absolute;
-    top: 20px;
+    top: 15px; /* Más cerca del borde */
     left: 20px;
     background: rgba(255, 255, 255, 0.15);
     color: white;
-    padding: 8px 15px;
+    padding: 6px 12px; /* Más pequeño */
     border-radius: 20px;
     text-decoration: none;
     font-weight: 600;
     transition: background 0.3s ease;
+    font-size: 0.9em;
 }
 
 .back-btn:hover {
     background: rgba(255, 255, 255, 0.3);
 }
 
-/* Controles de administración en la cabecera de noticias */
 .news-admin-controls {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-#newsAdminPanel {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
     margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* --- BANNER CREATION FORM STYLES --- */
 
 .banner-form-section {
-    max-width: 800px;
-    margin: 30px auto;
-    padding: 20px;
+    max-width: 700px; /* Ancho un poco más compacto */
+    margin: 20px auto; /* Menos margen vertical */
+    padding: 15px; /* Menos padding interno */
     background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px; /* Borde más sutil */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); /* Sombra más suave */
 }
 
 .banner-form-section h2 {
-    color: var(--color-principal-oscuro);
-    margin-top: 0;
-    border-bottom: 2px solid var(--color-principal-claro);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    text-align: center;
+    font-size: 1.4em; /* Más pequeño */
+    padding-bottom: 8px;
+    margin-bottom: 15px;
 }
 
 .banner-form-section input[type="text"],
 .banner-form-section textarea {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box; /* Incluye padding y borde en el ancho total */
-    font-family: inherit;
-    font-size: 1em;
+    padding: 10px; /* Menos padding interno */
+    margin-bottom: 10px;
+    font-size: 0.95em; /* Fuente más pequeña */
 }
 
-.banner-form-section textarea {
-    resize: vertical;
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-.secondary-btn {
-    background-color: #ff4d4d; /* Rojo para cancelar */
-}
 
 /* --- NEWS CONTAINER & BANNER STYLES --- */
 
 .news-container {
-    max-width: 1000px;
+    max-width: 900px; /* Ancho máximo un poco menor */
     margin: 0 auto;
-    padding: 20px;
+    padding: 15px; /* Menos padding del contenedor */
 }
 
 .banners-list-container {
-    display: flex;
-    flex-direction: column;
-    gap: 25px; /* Espacio entre pancartas */
+    gap: 15px; /* Menos espacio entre pancartas (reducido de 25px) */
 }
 
 .news-banner {
-    padding: 30px;
-    border-radius: 15px;
-    color: white;
-    position: relative;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background-size: cover;
-    background-position: center;
-    /* Estilo de fondo por defecto, será reemplazado por colores random */
-    background-color: var(--color-principal-claro); 
+    padding: 20px; /* Reducido de 30px, clave para la compacidad */
+    border-radius: 12px; /* Borde más sutil */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); /* Sombra más suave */
 }
 
 .news-banner:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
-}
-
-.banner-overlay {
-    /* Gradiente sutil para mejorar la legibilidad del texto sobre colores/imágenes */
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 15px;
-    background: rgba(0, 0, 0, 0.1); 
-}
-
-.banner-content-wrap {
-    position: relative; /* Para que el contenido esté sobre el overlay */
-    z-index: 10;
+    transform: translateY(-2px); /* Menor levantamiento */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .banner-title {
-    font-size: 1.8em;
-    font-weight: 800;
-    margin-top: 0;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.5);
-    padding-bottom: 10px;
+    font-size: 1.5em; /* Reducido de 1.8em */
+    font-weight: 700; /* Ligeramente menos negrita */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4); /* Línea más fina */
+    padding-bottom: 5px; /* Más compacto */
+    margin-bottom: 10px; /* Más compacto */
+}
+
+.banner-date {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-top: -5px;
     margin-bottom: 15px;
 }
 
 .banner-text {
-    font-size: 1.1em;
-    line-height: 1.6;
-    white-space: pre-wrap; /* Mantiene saltos de línea y espacios */
-}
-
-/* Estilo para enlaces dentro del texto de la pancarta */
-.banner-text a {
-    color: var(--color-acento); /* Un color que contraste */
-    font-weight: bold;
-    text-decoration: underline;
-}
-
-/* Botón de eliminación (solo visible en modo edición) */
-.delete-banner-btn {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: #e74c3c;
-    color: white;
-    border: 3px solid white;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    text-align: center;
-    line-height: 24px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.2em;
-    z-index: 20;
-    transition: background 0.2s;
-    display: none; /* Oculto por defecto */
-}
-
-.delete-banner-btn:hover {
-    background: #c0392b;
+    font-size: 1em; /* Reducido de 1.1em */
+    line-height: 1.5; /* Reducido de 1.6 */
 }
 
 /* --- COMMENT SECTION STYLES --- */
 
 .banner-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
-    padding-top: 15px;
-    margin-top: 20px;
+    padding-top: 10px; /* Más compacto */
+    margin-top: 15px; /* Más compacto */
 }
 
 .comment-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px; /* Más compacto */
 }
 
 .like-btn, .view-comments-btn {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 1em;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-.like-btn:hover, .view-comments-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.liked {
-    color: var(--color-acento); /* Color para cuando está gustado */
-}
-
-.comments-list {
-    margin-top: 15px;
-    max-height: 0; /* Oculto por defecto, se despliega con JS */
-    overflow: hidden;
-    transition: max-height 0.5s ease-in-out;
+    font-size: 0.9em; /* Más pequeños */
+    padding: 4px 8px;
 }
 
 .comments-list.expanded {
-    max-height: 1000px; /* Suficientemente grande para el despliegue */
+    /* Mantener el despliegue */
 }
 
 .comment-item {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    font-size: 0.95em;
-    position: relative;
-}
-
-.comment-item strong {
-    font-weight: 700;
-    margin-right: 5px;
+    padding: 8px; /* Reducido de 10px */
+    border-radius: 6px; /* Borde más pequeño */
+    margin-bottom: 6px;
+    font-size: 0.9em; /* Comentarios más pequeños */
 }
 
 .first-comment {
-    background: rgba(255, 255, 255, 0.2);
-    margin-bottom: 15px; /* Más espacio para el primer comentario visible */
+    margin-bottom: 10px; /* Más compacto */
 }
 
 .comment-form {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
-.comment-form input[type="text"] {
-    flex-basis: 30%;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    background-color: white;
-    color: #333;
-}
-
+.comment-form input[type="text"],
 .comment-form textarea {
-    flex-grow: 1;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    resize: none;
-    background-color: white;
-    color: #333;
-    height: 40px;
+    padding: 6px 8px; /* Inputs de comentario más pequeños */
+    font-size: 0.9em;
 }
 
 .comment-form button {
-    background-color: var(--color-acento);
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-weight: 600;
-}
-
-.comment-form button:hover {
-    background-color: var(--color-acento-oscuro);
-}
-
-/* Estilos de la web principal para el botón de acceso a noticias, añadido en index.html */
-.header-action-container {
-    text-align: center;
-    padding: 10px 0;
-    background-color: var(--color-principal); /* Utiliza el color del header principal */
-}
-
-.news-btn {
-    display: inline-block;
-    background-color: var(--color-acento); /* Color de acento para el botón */
-    color: white;
-    padding: 10px 20px;
-    margin: 5px 0 20px; 
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1.1em;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease, transform 0.1s ease;
-}
-
-.news-btn:hover {
-    background-color: var(--color-acento-oscuro);
-    transform: translateY(-1px);
+    padding: 6px 12px;
+    font-size: 0.9em;
 }
 
 /* --- Responsive adjustments --- */
 @media (max-width: 768px) {
     .news-banner {
-        padding: 20px;
+        padding: 15px; /* Aún más pequeño en móvil */
     }
     .banner-title {
-        font-size: 1.5em;
+        font-size: 1.4em;
     }
     .banner-text {
-        font-size: 1em;
-    }
-    .back-btn {
-        position: static;
-        display: block;
-        margin: 0 auto 15px;
-    }
-    .news-header {
-        padding: 20px 10px;
-    }
-    .comment-form {
-        flex-direction: column;
-    }
-    .comment-form input[type="text"] {
-        flex-basis: auto;
-    }
-    .comment-form button {
-        width: 100%;
+        font-size: 0.95em;
     }
 }

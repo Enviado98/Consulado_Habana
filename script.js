@@ -813,8 +813,8 @@ function renderStatusPanel(status, isAdminMode) {
     const latestTime = Math.max(deficitTime, divisaTime);
     
     const { text: latestTimeText } = timeAgo(latestTime);
-    DOMElements.lastEditedTime.textContent = `Última edición: ${latestTimeText}`;
-
+    // ⭐ CAMBIO APLICADO: Usar innerHTML e insertar <br> para el salto de línea ⭐
+    DOMElements.lastEditedTime.innerHTML = `Última edición:<br> ${latestTimeText}`;
     
     if (isAdminMode) {
         // Modo Admin: Campos de Input

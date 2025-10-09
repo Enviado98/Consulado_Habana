@@ -1,8 +1,8 @@
-// news_script.js - VERSIÓN FINAL Y PULIDA CON SUPABASE
+// news_script.js - VERSIÓN FINAL Y PULIDA CON CORRECCIÓN DE COMENTARIOS
 
 // ---------------------------------------------------------------------------------------------
 // --- CONFIGURACIÓN DE SUPABASE (POSTGRESQL BAAS) ---
-// Utiliza las credenciales del proyecto original
+// POR FAVOR, REEMPLAZA ESTAS CLAVES CON LAS TUYAS REALES DE SUPABASE
 const SUPABASE_URL = "https://ekkaagqovdmcdexrjosh.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVra2FhZ3FvdmRtY2RleHJqb3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4NjU2NTEsImV4cCI6MjA3NTQ0MTY1MX0.mmVl7C0Hkzrjoks7snvHWMYk-ksSXkUWzVexhtkozRA"; 
 // ----------------------------------------------------
@@ -23,6 +23,8 @@ const bannerCreationSection = document.getElementById('bannerCreationSection');
 const addBannerBtn = document.getElementById('addBannerBtn');
 const publishBannerBtn = document.getElementById('publishBannerBtn');
 const cancelBannerBtn = document.getElementById('cancelBannerBtn');
+// Nuevo botón
+const exitAdminBtn = document.getElementById('exitAdminBtn'); 
 
 
 // ---------------------------------------------------------------------------------------------
@@ -36,6 +38,7 @@ function getRandomColor() {
         '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#f1c40f',
         '#e67e22', '#e74c3c', '#1abc9c', '#f39c12', '#95a5a6'
     ];
+    // Usamos el color verde del proyecto para las noticias, pero permitimos variación
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
@@ -49,6 +52,7 @@ function linkify(text) {
         if (!url.match(/^https?:\/\//i)) {
             fullURL = 'http://' + url;
         }
+        // Usamos target="_blank" para abrir en una nueva pestaña
         return `<a href="${fullURL}" target="_blank" rel="noopener noreferrer">${url}</a>`;
     });
     return linkedText.replace(/\n/g, '<br>');
@@ -61,7 +65,6 @@ function linkify(text) {
  * Crea el HTML para un comentario específico.
  */
 function createCommentHtml(comment, bannerId) {
-    // Usamos el ID del comentario para el like, ya que es único en Supabase
     const likeKey = `like_${comment.id}`; 
     const isLiked = localStorage.getItem(likeKey) === 'true';
     const likeClass = isLiked ? 'liked' : '';
@@ -81,27 +84,31 @@ function createCommentHtml(comment, bannerId) {
 
 /**
  * Crea el HTML completo para una pancarta de noticias.
+ * ⭐ LÓGICA DE COMENTARIOS CORREGIDA AQUÍ ⭐
  */
 function createBannerHtml(banner) {
     const date = new Date(banner.created_at).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' });
     const formattedContent = linkify(banner.content);
     const comments = banner.comments || [];
     
-    const firstComment = comments.length > 0 ? comments[0] : null;
-    
-    // Omitimos el primer comentario de la lista desplegable si hay más de uno, 
-    // ya que se muestra por separado para evitar duplicidad visual.
-    const commentsToExpand = comments.slice(1); 
-    const otherCommentsHtml = commentsToExpand.map(comment => createCommentHtml(comment, banner.id)).join('');
+    // Generamos el HTML para TODOS los comentarios.
+    const allCommentsHtml = comments.map(comment => createCommentHtml(comment, banner.id)).join('');
 
-    // Si hay un primer comentario, lo mostramos fuera de la lista de despliegue
-    const initialCommentHtml = firstComment ? 
-        `<div class="comment-item first-comment"><strong>${firstComment.commenter_name}</strong>: ${firstComment.comment_text}</div>` : '';
+    // El primer comentario se muestra fuera de la lista de despliegue.
+    const firstCommentHtml = comments.length > 0 ? createCommentHtml(comments[0], banner.id) : '';
     
-    // El botón solo aparece si hay más de 1 comentario para desplegar
-    const viewMoreButton = comments.length > 1 ? 
-        `<button class="view-comments-btn" data-banner-id="${banner.id}" data-expanded="false">Ver ${comments.length - 1} comentarios más... </button>` :
-        (comments.length === 1 ? '1 comentario.' : 'Sé el primero en comentar.');
+    // Calculamos cuántos comentarios "más" se mostrarían al hacer clic (todos menos el primero)
+    const commentsToExpandCount = comments.length > 1 ? comments.length - 1 : 0;
+    
+    // El botón de ver más solo aparece si hay más de 1 comentario.
+    let viewMoreButton;
+    if (commentsToExpandCount > 0) {
+        viewMoreButton = `<button class="view-comments-btn" data-banner-id="${banner.id}" data-expanded="false">Ver ${commentsToExpandCount} comentarios más... </button>`;
+    } else if (comments.length === 1) {
+        viewMoreButton = `1 comentario.`;
+    } else {
+        viewMoreButton = `Sé el primero en comentar.`;
+    }
 
 
     const bannerElement = document.createElement('article');
@@ -123,9 +130,10 @@ function createBannerHtml(banner) {
                 </div>
 
                 <div id="comments-list-${banner.id}" class="comments-list">
-                    ${otherCommentsHtml}
+                    ${allCommentsHtml} 
                 </div>
-                ${initialCommentHtml}
+                
+                ${firstCommentHtml} 
 
                 <div class="comment-form">
                     <input type="text" placeholder="Tu Nombre" required maxlength="30" class="commenter-name-input" data-banner-id="${banner.id}">
@@ -146,7 +154,6 @@ async function loadBannersAndComments() {
     try {
         newsBannersContainer.innerHTML = '<p style="text-align: center; color: var(--color-texto-secundario); margin: 30px;">Cargando noticias destacadas...</p>';
 
-        // Consulta a Supabase, trayendo los comentarios asociados
         let { data, error } = await supabase
             .from('news_banners')
             .select(`
@@ -163,7 +170,7 @@ async function loadBannersAndComments() {
                     created_at
                 )
             `)
-            .order('created_at', { ascending: false }); // Ordenar pancartas por fecha
+            .order('created_at', { ascending: false }); 
 
         if (error) throw error;
         
@@ -187,7 +194,7 @@ async function loadBannersAndComments() {
  * Renderiza todas las pancartas cargadas en newsData.
  */
 function renderAllBanners() {
-    newsBannersContainer.innerHTML = ''; // Limpiar contenedor
+    newsBannersContainer.innerHTML = ''; 
     
     if (newsData.length === 0) {
         newsBannersContainer.innerHTML = '<p style="text-align: center; color: #777; margin: 30px;">Aún no hay noticias destacadas.</p>';
@@ -202,20 +209,37 @@ function renderAllBanners() {
 
 /**
  * Alterna el modo edición de la página.
+ * ⭐ LÓGICA DE BOTONES DE EDICIÓN MEJORADA AQUÍ ⭐
+ * @param {boolean} forceExit Si es true, fuerza la salida del modo admin.
  */
-function toggleAdminMode() {
-    isAdminMode = !isAdminMode;
+function toggleAdminMode(forceExit = false) {
+    if (forceExit) {
+        isAdminMode = false;
+    } else {
+        isAdminMode = !isAdminMode;
+    }
     
-    // Actualiza la interfaz
+    // 1. Mostrar/Ocultar el panel de administración
     newsAdminPanel.style.display = isAdminMode ? 'flex' : 'none';
-    toggleNewsAdminBtn.textContent = isAdminMode ? '✅ MODO EDICIÓN ACTIVO' : '🛡️ MODO EDICIÓN DE NOTICIAS';
-    toggleNewsAdminBtn.classList.toggle('active', isAdminMode);
+    
+    // 2. Controlar la visibilidad del botón de entrada
+    if (!isAdminMode) {
+        // Modo NO ACTIVO (muestra el botón de entrada)
+        toggleNewsAdminBtn.style.display = 'block';
+        toggleNewsAdminBtn.textContent = '🛡️ ACTIVAR EDICIÓN';
+        toggleNewsAdminBtn.classList.remove('active');
+    } else {
+        // Modo ACTIVO (oculta el botón de entrada, la salida está en el panel)
+        toggleNewsAdminBtn.style.display = 'none';
+        toggleNewsAdminBtn.classList.add('active');
+    }
 
-    // Muestra/Oculta botones de eliminar en las pancartas
+    // 3. Mostrar/Ocultar los botones de eliminar en las pancartas
     document.querySelectorAll('.delete-banner-btn').forEach(btn => {
         btn.style.display = isAdminMode ? 'block' : 'none';
     });
     
+    // 4. Ocultar el formulario de creación si el modo se desactiva
     if (!isAdminMode) {
         bannerCreationSection.style.display = 'none';
     }
@@ -250,12 +274,11 @@ async function publishNewBanner() {
     }
 
     alert('Pancarta publicada con éxito!');
-    // Limpiar y cerrar formulario
     document.getElementById('bannerTitle').value = '';
     document.getElementById('bannerContent').value = '';
     bannerCreationSection.style.display = 'none';
     
-    await loadBannersAndComments(); // Recargar datos
+    await loadBannersAndComments(); 
 }
 
 /**
@@ -266,7 +289,6 @@ async function deleteBanner(bannerId) {
         return;
     }
 
-    // Debido a ON DELETE CASCADE en el SQL, los comentarios se eliminarán automáticamente.
     const { error } = await supabase
         .from('news_banners')
         .delete()
@@ -279,7 +301,7 @@ async function deleteBanner(bannerId) {
     }
 
     alert('Pancarta eliminada.');
-    await loadBannersAndComments(); // Recargar datos
+    await loadBannersAndComments(); 
 }
 
 /**
@@ -308,11 +330,10 @@ async function publishComment(bannerId, name, text, nameInput, textInput) {
     }
 
     alert('Comentario publicado.');
-    // Limpiar inputs
     nameInput.value = '';
     textInput.value = '';
     
-    await loadBannersAndComments(); // Recargar datos para ver el nuevo comentario
+    await loadBannersAndComments(); 
 }
 
 /**
@@ -322,29 +343,24 @@ async function toggleCommentLike(commentId, btn) {
     const likeKey = `like_${commentId}`;
     const isLiked = localStorage.getItem(likeKey) === 'true';
 
-    // 1. Obtener el valor actual de likes (del DOM para evitar otra consulta)
     const currentLikesText = btn.textContent.split(' ')[1];
     const currentLikes = parseInt(currentLikesText) || 0;
     let newLikes = currentLikes;
 
     if (isLiked) {
-        // Quitar Like
         newLikes = Math.max(0, currentLikes - 1);
         localStorage.removeItem(likeKey);
     } else {
-        // Dar Like
         newLikes = currentLikes + 1;
         localStorage.setItem(likeKey, 'true');
     }
 
-    // 2. Actualizar el contador en Supabase
     const { error } = await supabase
         .from('banner_comments')
         .update({ likes: newLikes })
         .eq('id', commentId);
 
     if (error) {
-        // Si falla la DB, revertir el localStorage y alertar
         if (isLiked) {
              localStorage.setItem(likeKey, 'true');
         } else {
@@ -355,7 +371,6 @@ async function toggleCommentLike(commentId, btn) {
         return;
     }
     
-    // 3. Actualizar el DOM
     btn.classList.toggle('liked', !isLiked);
     btn.innerHTML = `❤️ ${newLikes}`;
 }
@@ -368,15 +383,14 @@ function toggleCommentsList(bannerId, btn) {
     const isExpanded = btn.dataset.expanded === 'true';
     
     const banner = newsData.find(b => b.id === bannerId);
+    const totalComments = banner.comments ? banner.comments.length : 0;
+    const commentsToExpandCount = totalComments > 1 ? totalComments - 1 : 0;
 
     if (isExpanded) {
         list.classList.remove('expanded');
         btn.dataset.expanded = 'false';
-        // Solo mostramos 'Ver X más...' si realmente hay comentarios para expandir (más de 1 total)
-        if (banner.comments.length > 1) {
-            btn.textContent = `Ver ${banner.comments.length - 1} comentarios más...`;
-        } else {
-            btn.textContent = '1 comentario.';
+        if (commentsToExpandCount > 0) {
+            btn.textContent = `Ver ${commentsToExpandCount} comentarios más... `;
         }
     } else {
         list.classList.add('expanded');
@@ -395,9 +409,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBannersAndComments();
     
     // 2. Listeners para el Modo Edición y Creación
-    toggleNewsAdminBtn.addEventListener('click', toggleAdminMode);
+    toggleNewsAdminBtn.addEventListener('click', () => toggleAdminMode());
+    
+    // ⭐ NUEVO: Listener para el botón de salida del modo admin ⭐
+    if (exitAdminBtn) {
+        exitAdminBtn.addEventListener('click', () => toggleAdminMode(true));
+    }
+
     addBannerBtn.addEventListener('click', () => {
-        // Limpiar y mostrar formulario
         document.getElementById('bannerTitle').value = '';
         document.getElementById('bannerContent').value = '';
         bannerCreationSection.style.display = 'block';

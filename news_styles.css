@@ -1,7 +1,7 @@
-/* news_styles.css - VERSIÓN FINAL: ESTÉTICA ORIGINAL (Botones Bonitos) + DISEÑO COMPACTO */
+/* news_styles.css - VERSIÓN FINAL Y LIMPIA: COMPACTO, ALINEADO Y ESTÉTICO */
 
 /* ----------------------------------------------------------------
-   AJUSTES GENERALES Y FUENTES
+   AJUSTES GENERALES Y ESTRUCTURA BASE
    ---------------------------------------------------------------- */
 
 body {
@@ -10,34 +10,35 @@ body {
     font-family: 'Nunito', sans-serif;
     margin: 0;
     padding: 0;
+    line-height: 1.4;
 }
 
 .news-container {
-    max-width: 900px; /* Ancho que da la sensación de ser alargado */
+    max-width: 900px; 
     margin: 0 auto;
     padding: 10px; 
 }
 
 /* ----------------------------------------------------------------
-   HEADER Y NAVEGACIÓN (TAMAÑO REDUCIDO)
+   HEADER Y CONTROLES ADMIN (ESTÉTICA RESTAURADA)
    ---------------------------------------------------------------- */
 
 .news-header {
     background-color: var(--color-principal, #4f46e5);
     color: white;
-    padding: 15px 15px 8px; /* Compacto */
+    padding: 15px 15px 8px;
     text-align: center;
     position: relative;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .news-header h1 {
-    font-size: 1.5em; /* Título pequeño y bonito */
+    font-size: 1.5em; 
     margin-bottom: 2px;
 }
 
 .news-header p {
-    font-size: 0.85em; /* Texto secundario pequeño */
+    font-size: 0.85em; 
     margin-top: 0;
 }
 
@@ -52,18 +53,7 @@ body {
     transition: background 0.3s ease;
 }
 
-/* ----------------------------------------------------------------
-   CONTROLES DE ADMINISTRACIÓN (PANEL Y BOTONES BONITOS/LLAMATIVOS)
-   ---------------------------------------------------------------- */
-
-.news-admin-controls { 
-    margin-top: 8px; 
-    padding-top: 8px; 
-    border-top: 1px solid rgba(255, 255, 255, 0.2); 
-    text-align: center;
-}
-
-/* Panel Admin con Glassmorphism (El estilo bonito que ya tenías) */
+/* Panel Admin con Glassmorphism (El estilo bonito) */
 #newsAdminPanel {
     display: flex; 
     flex-wrap: wrap;
@@ -71,7 +61,6 @@ body {
     gap: 8px;
     margin: 10px auto; 
     padding: 10px;
-    /* Usamos las variables Glassmorphism del styles.css principal */
     background: var(--glass-bg, rgba(255, 255, 255, 0.4));
     backdrop-filter: blur(5px);
     border-radius: 12px;
@@ -79,50 +68,18 @@ body {
     box-shadow: 0 4px 10px var(--sombra-suave, rgba(0, 0, 0, 0.1));
 }
 
-/* Estilos de Botones: redondeados, con color y llamativos (usando las variables) */
+/* Ajuste de Botones: pequeño, redondeado y llamativo */
 .primary-admin-btn, .admin-btn, .form-actions button {
     font-size: 0.85em; 
     padding: 8px 14px;
-    border-radius: 25px; /* Más redondeado */
+    border-radius: 25px; 
     font-weight: 700;
-    border: none;
-    cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    text-transform: uppercase;
-}
-
-/* Botón de Activar/Publicar (Verde) */
-.primary-admin-btn {
-    background-color: var(--acento-verde, #0d9488);
-    color: white;
-}
-.primary-admin-btn:hover {
-    background-color: #0b7060;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-}
-
-/* Botón de Salir (Rojo/Acento) */
-#exitAdminBtn {
-    background-color: var(--acento-rojo, #ef233c);
-    color: white;
-}
-#exitAdminBtn:hover {
-    background-color: #d11e32;
-}
-
-/* Botones Secundarios (Añadir/Cancelar) */
-.admin-btn {
-    background-color: var(--color-principal, #4f46e5);
-    color: white;
-}
-.admin-btn:hover {
-    background-color: #3f39c7;
 }
 
 /* ----------------------------------------------------------------
-   ESTILOS DE PANCARTAS (ALARGADAS, COMPACTAS Y BONITAS)
+   PANCARTAS (ALARGADAS, COMPACTAS Y FIJAS)
    ---------------------------------------------------------------- */
 
 .banners-list-container {
@@ -132,32 +89,42 @@ body {
 }
 
 .news-banner {
-    padding: 12px 15px; /* Mantiene la compacidad */
+    padding: 12px 15px; 
     color: white; 
     border-radius: 8px; 
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
     position: relative;
     overflow: hidden;
+    /* Usamos Flexbox para ordenar el contenido verticalmente y asegurar el espacio */
+    display: flex;
+    flex-direction: column;
 }
 
 .banner-content-wrap {
-    padding-bottom: 30px; /* Espacio suficiente para el tag de tiempo */
+    /* Ocupa el espacio restante en el flexbox */
+    flex-grow: 1; 
+    padding-bottom: 30px; 
 }
 
 .banner-title {
     font-size: 1.1em; 
     font-weight: 700;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4); /* Línea divisoria más clara */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4); 
     padding-bottom: 3px;
     margin-bottom: 5px; 
+    /* Aseguramos que el texto no desborde */
+    word-wrap: break-word; 
 }
 
 .banner-text {
     font-size: 0.9em; 
     line-height: 1.3;
+    /* Evita el desbordamiento del texto largo */
+    word-wrap: break-word; 
+    overflow-wrap: break-word;
 }
 
-/* Tag de Tiempo en la Esquina (Pequeño y con fondo de color) */
+/* Tag de Tiempo en la Esquina (Pequeño y fijo) */
 .time-elapsed-tag {
     position: absolute;
     bottom: 0;
@@ -166,37 +133,45 @@ body {
     font-size: 0.75em; 
     font-weight: 700;
     color: white;
-    border-top-left-radius: 8px; /* Bordes redondeados sutiles */
+    border-top-left-radius: 8px; 
     line-height: 1;
     text-transform: uppercase;
     box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.delete-banner-btn {
+    width: 20px; height: 20px; font-size: 0.9em; line-height: 17px;
+}
 
 /* ----------------------------------------------------------------
-   ESTILOS DE COMENTARIOS (Nuevo Formato)
+   COMENTARIOS (ALINEACIÓN Y LEGIBILIDAD)
    ---------------------------------------------------------------- */
 
 .banner-footer {
     padding: 8px; 
     margin-top: 10px;
-    background-color: rgba(0, 0, 0, 0.1); /* Sombra sutil dentro del banner */
+    background-color: rgba(0, 0, 0, 0.1); 
     border-radius: 4px;
 }
 
-/* Ítem de Comentario (Estilo limpio) */
 .comment-item {
     padding: 8px 10px;
     border-radius: 6px;
     margin-bottom: 4px;
     font-size: 0.85em; 
-    background-color: white; /* Fondo blanco para mejor lectura del texto oscuro */
+    background-color: white; 
     color: var(--color-texto-principal);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border-left: 3px solid var(--acento-cian, #00bcd4);
 }
-.comment-item strong {
-    font-weight: 700;
+
+/* Ajuste del nombre y tiempo */
+.comment-item p {
+    /* Usamos Flexbox para el nombre/tiempo */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
 }
 
 .comment-text-wrap {
@@ -206,23 +181,8 @@ body {
     overflow-wrap: break-word;
 }
 
-/* Asegurar que el botón like sea pequeño */
-.comment-item .like-btn {
-    font-size: 0.75em;
-    padding: 2px 6px;
-    border-radius: 12px;
-    background: #eee;
-    color: #333;
-    border: 1px solid #ccc;
-}
-.comment-item .like-btn.liked {
-    background: var(--acento-rojo);
-    color: white;
-    border-color: var(--acento-rojo);
-}
-
 /* ----------------------------------------------------------------
-   RESPONSIVE
+   RESPONSIVE (Ajustes para móvil)
    ---------------------------------------------------------------- */
 
 @media (max-width: 600px) {
@@ -230,7 +190,7 @@ body {
     .news-banner { padding: 10px; }
     .banner-title { font-size: 1em; }
     
-    /* Forzar apilamiento de los botones en móvil */
+    /* Asegurar que los botones admin se apilen bien */
     #newsAdminPanel {
         flex-direction: column;
         gap: 5px;

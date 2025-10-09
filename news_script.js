@@ -1,4 +1,4 @@
-// news_script.js - VERSIÓN FINAL Y PULIDA CON LÓGICA DE TIEMPO Y COMENTARIOS
+// news_script.js - VERSIÓN FINAL: LÓGICA DE TIEMPO Y COMENTARIOS RECIENTES
 
 // ---------------------------------------------------------------------------------------------
 // --- CONFIGURACIÓN DE SUPABASE (POSTGRESQL BAAS) ---
@@ -101,13 +101,14 @@ function createCommentHtml(comment, bannerId) {
     const isLiked = localStorage.getItem(likeKey) === 'true';
     const likeClass = isLiked ? 'liked' : '';
     const nameColor = getRandomNameColor(comment.commenter_name);
+    const timeText = timeSince(comment.created_at);
 
     return `
         <div class="comment-item" data-comment-id="${comment.id}">
             <p style="margin: 0;">
                 <strong style="color: ${nameColor};">${comment.commenter_name} dijo:</strong>
                 <span style="font-size: 0.75em; color: #888; float: right;">
-                    ${timeSince(comment.created_at)}
+                    ${timeText}
                 </span>
             </p>
             <div class="comment-text-wrap">
@@ -129,7 +130,7 @@ function createBannerHtml(banner) {
     const formattedContent = linkify(banner.content);
     const comments = banner.comments || [];
     
-    // El comentario más reciente es el primero (gracias al orden DESC en loadBanners)
+    // El comentario más reciente es el primero (ordenado DESC en loadBanners)
     const mostRecentCommentHtml = comments.length > 0 ? createCommentHtml(comments[0], banner.id) : '';
     
     // Los comentarios a desplegar son todos menos el más reciente
@@ -218,7 +219,7 @@ async function loadBannersAndComments() {
 
         if (error) throw error;
         
-        // ⭐ CRÍTICO: Ordenar los comentarios dentro de cada banner por su fecha de creación (DESCENDENTE: MÁS RECIENTE PRIMERO)
+        // CRÍTICO: Ordenar los comentarios dentro de cada banner por su fecha de creación (DESCENDENTE: MÁS RECIENTE PRIMERO)
         newsData = data.map(banner => {
             if (banner.comments) {
                 banner.comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -249,12 +250,8 @@ function renderAllBanners() {
 }
 
 // ---------------------------------------------------------------------------------------------
-// --- HANDLERS DE EVENTOS (PERSISTENCIA CON SUPABASE) ---
+// --- HANDLERS DE EVENTOS (PERSISTENCIA Y LÓGICA DE BOTONES) ---
 
-/**
- * Alterna el modo edición de la página.
- * @param {boolean} forceExit Si es true, fuerza la salida del modo admin.
- */
 function toggleAdminMode(forceExit = false) {
     if (forceExit) {
         isAdminMode = false;
@@ -282,9 +279,6 @@ function toggleAdminMode(forceExit = false) {
     }
 }
 
-/**
- * Alterna la visibilidad de los comentarios que no son el más reciente.
- */
 function toggleCommentsList(bannerId, btn) {
     const list = document.getElementById(`comments-list-${bannerId}`);
     const isExpanded = btn.dataset.expanded === 'true';
@@ -306,8 +300,6 @@ function toggleCommentsList(bannerId, btn) {
     }
 }
 
-// Las funciones publishNewBanner, deleteBanner, publishComment y toggleCommentLike 
-// se mantienen igual que en la versión anterior ya que su lógica de persistencia es correcta.
 
 async function publishNewBanner() {
     const title = document.getElementById('bannerTitle').value.trim();
@@ -426,7 +418,6 @@ async function toggleCommentLike(commentId, btn) {
     btn.classList.toggle('liked', !isLiked);
     btn.innerHTML = `❤️ ${newLikes}`;
 }
-
 
 // ---------------------------------------------------------------------------------------------
 // --- INICIALIZACIÓN Y LISTENERS ---

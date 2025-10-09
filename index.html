@@ -29,29 +29,22 @@
     </div>
 </div>
 <div id="newsTicker" class="news-ticker-container" style="display:none;">
-    <strong class="news-ticker-fixed-label">NOTICIAS</strong>
-    <div class="news-ticker-wrap">
-        <div id="newsTickerContent" class="news-ticker-content">
-            </div>
-    </div>
+    <strong class="news-title">📢 Últimas Noticias:</strong> 
+    <span class="news-content" id="newsContent"></span>
 </div>
 
-<div class="login-controls">
-  <div id="statusMessage" class="login-message">
-            Accede como editor para actualizar la información
-  </div>
+<div class="controls-wrapper">
+  <p class="status-message" id="statusMessage">Activar Edición para modificar contenidos</p>
   
-  <div id="loginForm">
-    <input id="user" placeholder="Usuario" aria-label="Usuario">
-    <input id="pass" type="password" placeholder="Contraseña" aria-label="Contraseña">
-    <button id="loginBtn">Acceder</button>
-  </div>
-  
-  <div id="adminControlsPanel">
-    <button id="saveBtn">💾 Guardar Cambios</button>
-    <button id="addNewsBtn" class="admin-btn">✅️ Añadir una Noticia</button> 
-    <button id="deleteNewsBtn" class="admin-btn">❌ Eliminar una Noticia</button> 
-    <button id="logoutBtn"> ❌Salir del Modo Edicion❌</button>
+  <div id="controlsContainer">
+    <button id="toggleEditModeBtn" class="admin-btn">🛡️ ACTIVAR MODO EDICIÓN</button>
+    
+    <div id="adminControlsPanel" style="display: none;">
+      <button id="saveBtn" class="admin-btn">💾 Guardar Cambios</button>
+      <button id="addNewsBtn" class="admin-btn">✅ Añadir Noticia</button> 
+      <button id="deleteNewsBtn" class="admin-btn">❌ Eliminar Noticia</button> 
+      <button id="logoutBtn" class="admin-btn">🛑 Desactivar Edición</button>
+    </div>
   </div>
 </div>
 
@@ -75,10 +68,10 @@
 </section>
 
 <footer>
-  <div>© 2025 Consulado – Información actualizada periódicamente.</div>
+  <p>© 2024 La Habana - Consulado y Trámites. Fuente no oficial, sólo informativa.</p>
+  <p>Desarrollado y mantenido por usuarios.</p>
 </footer>
 
 <script type="module" src="script.js"></script>
-
 </body>
 </html>

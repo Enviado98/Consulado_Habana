@@ -127,7 +127,7 @@ function updateAdminUI(isAdmin) {
         DOMElements.adminControlsPanel.style.display = "none";
         DOMElements.statusMessage.textContent = "Accede a modo edición para actualizar la información"; // Texto ajustado
         DOMElements.statusMessage.style.color = "var(--color-texto-principal)"; 
-        DOMElements.toggleAdminBtn.textContent = "🔑 Acceder a Modo Edición"; // Nuevo texto
+        DOMElements.toggleAdminBtn.textContent = "🛡️ ACTIVAR EL MODO EDICIÓN"; // Nuevo texto
         DOMElements.toggleAdminBtn.style.backgroundColor = "#4f46e5"; // Color original
         disableEditing(); 
     }
@@ -148,7 +148,7 @@ function toggleAdminMode() {
         updateAdminUI(true);
         alert("Modo edición activado. ¡No olvides guardar!");
     } else {
-        if (!confirm("⚠️ ¿Estás seguro de que quieres salir del Modo Edición? Los cambios no guardados se PERDERÁN.")) {
+        if (!confirm("⚠️ ¿Estás seguro de que quieres salir del Modo Edición?")) {
             return;
         }
         updateAdminUI(false);
@@ -426,7 +426,7 @@ async function loadNews() {
 
     
     } else {
-        const avisoText = 'Sin noticias de última hora en estos momentos. Consulte el calendario para el estado general de los trámites.';
+        const avisoText = 'Sin noticias de última hora en estos momentos.';
         const repeatedAviso = `<span class="news-item">${avisoText}</span><span class="news-item"> | </span><span class="news-item">${avisoText}</span>`;
         
         DOMElements.newsTicker.style.display = 'flex'; 
@@ -688,7 +688,7 @@ async function publishComment() {
         const commentsWrap = document.querySelector('.comments-display-wrap');
         if (commentsWrap) commentsWrap.scrollTop = 0;
 
-        alert("✅ Comentario publicado. El hilo estará activo por 3 días.");
+        alert("✅ Comentario publicado. Estará activo por 3 días.");
 
     } catch (error) {
         console.error("Error al publicar el comentario:", error);
@@ -726,7 +726,7 @@ async function handlePublishReply(event) {
         form.style.display = 'none';
         await loadComments(); 
         
-        alert("✅ Respuesta publicada. El tiempo de expiración del hilo se ha reiniciado a 3 días.");
+        alert("✅ Respuesta publicada.");
 
     } catch (error) {
         console.error("Error al publicar la respuesta:", error);

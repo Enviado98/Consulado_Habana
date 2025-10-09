@@ -10,9 +10,11 @@
   --color-texto-secundario: #8d99ae; /* Gris Suave */
   --acento-rojo: #ef233c; /* Rojo Consular */
   --acento-verde: #0d9488; /* Verde Guardar */
-  /* ⭐ MODIFICADO: FONDO AMARILLO SUAVE PARA CUMPLIR REQUISITO ⭐ */
-  --fondo-principal: #fffbeb; 
+  
+  /* ⭐ MODIFICADO: FONDO VERDE CLARO PARA LA WEB ⭐ */
+  --fondo-principal: #e6ffe6; 
   --fondo-gradiente: var(--fondo-principal); 
+  
   --sombra-fuerte: rgba(0, 0, 0, 0.25);
   --sombra-suave: rgba(0, 0, 0, 0.1);
   /* Glassmorphism settings - CLAVE PARA LA 'BELLEZA' */
@@ -29,8 +31,8 @@
   --color-respuesta-fondo: #f0f3f5; /* Fondo Respuesta */
   --color-borde-hilo: #b3cdd1; /* Cian Suave para la línea del hilo */
   
-  /* Color de fondo para el nuevo panel unificado */
-  --fondo-panel-status: #fbf0c4; /* ⭐ MODIFICADO: Amarillo/Crema para el panel ⭐ */
+  /* ⭐ MODIFICADO: Fondo Amarillo Intenso para el panel de estado ⭐ */
+  --fondo-panel-status: #FFD700; 
   --borde-panel-status: #ff9800;
 }
 
@@ -38,7 +40,7 @@ body {
   margin: 0;
   padding: 0; 
   font-family: 'Nunito', sans-serif;
-  background: var(--fondo-gradiente); /* Usa el nuevo color amarillo suave */
+  background: var(--fondo-gradiente); /* Usa el nuevo color verde claro */
   color: var(--color-texto-principal);
   display: flex;
   flex-direction: column;
@@ -67,7 +69,7 @@ header p { margin: 0.3rem 0 0; font-size: 0.8rem; opacity: 0.9; }
     width: 95%;
     max-width: 800px;
     margin: 8px auto; /* Más compacto */
-    background-color: var(--fondo-panel-status); 
+    background-color: var(--fondo-panel-status); /* Usa el AMARILLO INTENSO */
     border: 1px solid var(--borde-panel-status); 
     border-radius: 10px; 
     font-size: 0.85rem; /* Más pequeño */

@@ -39,7 +39,7 @@ body {
   padding: 0;
   color: var(--color-texto-principal);
   background: var(--fondo-gradiente); /* Uso del degradado en el body */
-  min-height: 100vh;
+  min-height: 10vh;
 }
 
 /* ----------------------------------------------------------------
@@ -121,7 +121,7 @@ header p {
 
 /* Estilo para la fecha de última edición */
 #lastEditedTime {
-    /* Tamaño: ⭐ MODIFICADO A 30% MÁS PEQUEÑO ⭐ */
+    /* Tamaño: ⭐ MODIFICADO A 30% MÁS PEQUEÑO (0.7rem) ⭐ */
     font-size: 0.7rem; 
     font-weight: 900;
     color: white;

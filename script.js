@@ -117,7 +117,7 @@ function updateAdminUI(isAdmin) {
         DOMElements.adminControlsPanel.style.display = "flex";
         DOMElements.statusMessage.textContent = "✅ Modo de Edición Activado. ¡No olvides guardar!";
         DOMElements.statusMessage.style.color = "#0d9488"; 
-        DOMElements.toggleAdminBtn.textContent = "🛑 DESACTIVAR EL MODO EDICIÓN"; // Nuevo texto
+        DOMElements.toggleAdminBtn.textContent = "🛑 SALIR DEL MODO EDICIÓN"; // Nuevo texto
         DOMElements.toggleAdminBtn.style.backgroundColor = "var(--acento-rojo)"; // Nuevo color
         enableEditing(); 
         // alert("Modo edición activado. ¡No olvides guardar!"); // Alerta movida a toggleAdminMode

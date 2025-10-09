@@ -146,7 +146,7 @@ function updateAdminUI(isAdmin) {
 function toggleAdminMode() {
     if (!admin) {
         updateAdminUI(true);
-        alert("Modo edición activado. ¡No olvides guardar!");
+        alert("✅ Modo de Edición Activado. ¡No olvides guardar!");
     } else {
         if (!confirm("⚠️ ¿Estás seguro de que quieres salir del Modo Edición?")) {
             return;

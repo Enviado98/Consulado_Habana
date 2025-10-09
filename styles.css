@@ -530,3 +530,59 @@ footer {
         text-align: center;
     }
 }
+/* ----------------------------------------------------------------
+   ESTILO DEL BOTÓN DE NOTICIAS MEJORADO (index.html)
+   ---------------------------------------------------------------- */
+
+.news-btn-v2 {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Colores solicitados: Fondo verde y texto blanco */
+    background-color: var(--acento-verde, #0d9488); 
+    color: white;
+    
+    padding: 10px 20px;
+    margin: 10px auto 20px; 
+    border-radius: 8px; /* Borde cuadrado suave (minimalista) */
+    
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1em;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Sombra más fuerte para resaltar */
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    
+    /* Asegura que el contenedor del botón esté centrado */
+    width: auto; 
+    cursor: pointer;
+}
+
+.news-btn-v2:hover {
+    background-color: #0c8276; /* Tono más oscuro al pasar el ratón */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px); /* Pequeño levantamiento */
+}
+
+.news-btn-v2:active {
+    /* Efecto de pulsación */
+    transform: translateY(1px); 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    background-color: #0b7060;
+}
+
+/* El contenedor del botón debe estar en index.html para asegurar el centrado */
+.header-action-container {
+    text-align: center;
+    padding: 10px 0;
+    /* Color de fondo igual que el header, si aplica, para minimalismo */
+    background-color: transparent; 
+}
+
+/* Si quieres que el texto sea aún más 'minimalista' */
+.news-btn-v2 .emoji {
+    margin-right: 8px;
+}

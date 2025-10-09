@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Trámites Consulares</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+    
+    <style id="dynamicTickerStyles"></style>
+</head>
+<body>
+    <header>
+        <h1>
+            <span class="emoji">🇪🇸</span> Calendario de Trámites Consulares <span class="emoji">🇨🇺</span>
+        </h1>
+        <p>
+            Información de plazos y fechas aproximadas al <span id="fecha-actualizacion">Cargando...</span>
+        </p>
+    </header>
+
+    <div class="news-ticker-container">
+        <span class="news-ticker-fixed-label" id="newsTickerLabel">NOTICIAS</span>
+        <div class="news-ticker-wrap">
+            <div class="news-ticker-content" id="newsTickerContent">
+                </div>
+        </div>
+    </div>
+
+    <div class="status-panel-container" id="statusPanel">
+        <div class="status-panel-header">
+            <span>ESTADO ECONÓMICO Y ENERGÉTICO CUBANO 🔋</span>
+            <span id="lastEditedTime" class="red-timestamp">Última edición: hace X min.</span>
+        </div>
+        <div class="status-panel-data" id="statusDataContainer">
+            </div>
+    </div>
+    
+    <div class="login-controls">
+        <div class="login-message" id="statusMessage">Accede como admin para editar</div>
+        <div id="loginForm">
+            <input type="text" id="user" placeholder="Usuario">
+            <input type="password" id="pass" placeholder="Contraseña">
+            <button id="loginBtn">Acceder</button>
+        </div>
+        <div id="adminControlsPanel">
+            <button id="saveBtn">💾 Guardar Cambios</button>
+            <button id="addNewsBtn">➕ Añadir Noticia</button>
+            <button id="deleteNewsBtn">❌ Eliminar Noticia</button>
+            <button id="logoutBtn">🚪 Cerrar Modo Edicion</button>
+        </div>
+    </div>
+
+    <div class="container" id="contenedor">
+        <p style='grid-column: 1 / -1; text-align: center;'>Cargando datos de trámites...</p>
+    </div>
+
+    <div class="comments-section">
+        <h2>🗣️ COMENTARIOS Y DUDAS</h2>
+        
+        <div class="comment-form-container">
+            <input type="text" id="commenterName" placeholder="Tu Nombre (máx. 30)" maxlength="30" required>
+            <textarea id="commentText" placeholder="Escribe tu comentario o pregunta aquí (máx. 500)" maxlength="500" required></textarea>
+            <button id="publishCommentBtn">Publicar Comentario</button>
+        </div>
+        
+        <div class="comments-display-wrap">
+            <div id="commentsContainer">
+                </div>
+        </div>
+    </div>
+
+    <footer>
+        Hecho con ❤️ en GitHub | Datos en tiempo real de Supabase.
+    </footer>
+
+    <script src="script.js" type="module"></script>
+</body>
+</html>

@@ -30,9 +30,8 @@
   --color-borde-hilo: #b3cdd1; /* Cian Suave para la línea del hilo */
   
   /* Color de fondo para el nuevo panel unificado */
-  /* ⭐ MODIFICACIÓN SOLICITADA: Fondo Amarillo Intenso para el Status Panel ⭐ */
-  --fondo-panel-status: #FFEB3B; /* Amarillo Intenso */
-  --borde-panel-status: var(--acento-rojo); /* Borde Rojo para resaltar */
+  --fondo-panel-status: #fbf0c4; /* ⭐ MODIFICADO: Amarillo/Crema para el panel ⭐ */
+  --borde-panel-status: #ff9800;
 }
 
 body {
@@ -88,6 +87,25 @@ header p { margin: 0.3rem 0 0; font-size: 0.8rem; opacity: 0.9; }
     font-size: 0.75rem; /* Más pequeño */
     color: #555;
 }
+
+/* ⭐ MODIFICACIÓN SOLICITADA: Estilo para la etiqueta de Última Edición (Caja Roja y Tamaño) ⭐ */
+#lastEditedTime {
+    /* REQUISITO: Cuadro Rojo de Fondo */
+    background-color: var(--acento-rojo); 
+    color: white; 
+    border-radius: 6px; 
+    padding: 3px 5px; /* Compacto */
+    display: inline-block; /* Necesario para que el cuadro encierre el texto */
+    text-align: center;
+    line-height: 1.1; /* Compacta las líneas */
+
+    /* REQUISITO: Reducir tamaño (aprox 30% menos del 0.75rem del padre) */
+    font-size: 0.55rem; 
+    font-weight: 700;
+    flex-shrink: 0;
+}
+/* ---------------------------------------------------------------- */
+
 
 .status-panel-data {
     display: flex;
@@ -283,16 +301,15 @@ header p { margin: 0.3rem 0 0; font-size: 0.8rem; opacity: 0.9; }
 }
 
 /* *** LABEL DE RECIENTE COMPACTO (Web 1 REINTRODUCIDO) *** */
-/* ⭐ MODIFICACIÓN SOLICITADA: Reducir tamaño de fuente y padding del label de reciente ⭐ */
 .card-label {
     position: absolute; 
     top: -1px; 
     right: -1px; 
     font-weight: 900;
-    padding: 1px 4px; /* Reducido */
+    padding: 2px 6px;
     border-radius: 0 15px 0 15px; 
     z-index: 10;
-    font-size: 0.5rem; /* Reducido */
+    font-size: 0.55rem; 
     line-height: 1;
     display: none; /* Se muestra con JS solo si es reciente */
 }

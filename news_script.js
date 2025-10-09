@@ -1,4 +1,4 @@
-// news_script.js - VERSIÓN FINAL: LÓGICA DE TIEMPO Y COMENTARIOS RECIENTES
+// news_script.js - VERSIÓN FINAL Y LIMPIA: LÓGICA DE TIEMPO Y COMENTARIOS RECIENTES
 
 // ---------------------------------------------------------------------------------------------
 // --- CONFIGURACIÓN DE SUPABASE (POSTGRESQL BAAS) ---

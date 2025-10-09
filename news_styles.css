@@ -1,10 +1,8 @@
-/* news_styles.css - VERSIÓN MINIMALISTA Y COMPACTA */
+/* news_styles.css - VERSIÓN ULTRA COMPACTA Y MINIMALISTA */
 
-/* --- VARIABLES (Asumiendo que se heredan de styles.css) --- */
-/* (Se mantiene el uso de variables como --color-principal) */
-
-
-/* --- GENERAL & HEADER STYLES --- */
+/* ----------------------------------------------------------------
+   AJUSTES GENERALES Y FUENTES
+   ---------------------------------------------------------------- */
 
 body {
     background-color: var(--color-fondo-principal); 
@@ -14,147 +12,172 @@ body {
     padding: 0;
 }
 
+.news-container {
+    max-width: 800px; /* Reducido para una apariencia más centrada y compacta */
+    margin: 0 auto;
+    padding: 10px; /* Reducido */
+}
+
+/* ----------------------------------------------------------------
+   HEADER Y NAVEGACIÓN
+   ---------------------------------------------------------------- */
+
 .news-header {
     background-color: var(--color-principal);
     color: white;
-    padding: 25px 20px 15px; /* Menos padding vertical */
+    padding: 20px 15px 10px; /* Más compacto */
     text-align: center;
     position: relative;
-    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .news-header h1 {
-    font-size: 2.0em; /* Reducido de 2.2em */
-    margin-bottom: 3px;
+    font-size: 1.8em; /* Reducido */
+    margin-bottom: 2px;
 }
 
 .news-header p {
-    font-size: 1.0em; /* Reducido de 1.1em */
-    opacity: 0.9;
+    font-size: 0.95em; /* Reducido */
     margin-top: 0;
 }
 
 .back-btn {
     position: absolute;
-    top: 15px; /* Más cerca del borde */
-    left: 20px;
-    background: rgba(255, 255, 255, 0.15);
+    top: 10px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.1);
     color: white;
-    padding: 6px 12px; /* Más pequeño */
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: background 0.3s ease;
-    font-size: 0.9em;
+    padding: 5px 10px; /* Más pequeño */
+    border-radius: 15px;
+    font-weight: 500;
+    font-size: 0.8em;
 }
 
-.back-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
+/* Controles de Administración */
 .news-admin-controls {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+#newsAdminPanel {
+    gap: 8px;
+}
+/* Aseguramos que los botones de admin en esta página sean pequeños */
+.primary-admin-btn, .admin-btn {
+    font-size: 0.85em;
+    padding: 8px 12px;
 }
 
-/* --- BANNER CREATION FORM STYLES --- */
+
+/* ----------------------------------------------------------------
+   FORMULARIO DE CREACIÓN DE PANCARTA
+   ---------------------------------------------------------------- */
 
 .banner-form-section {
-    max-width: 700px; /* Ancho un poco más compacto */
-    margin: 20px auto; /* Menos margen vertical */
-    padding: 15px; /* Menos padding interno */
-    background-color: white;
-    border-radius: 8px; /* Borde más sutil */
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); /* Sombra más suave */
+    max-width: 700px;
+    margin: 20px auto; 
+    padding: 15px; 
+    border-radius: 6px; 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); 
 }
 
 .banner-form-section h2 {
-    font-size: 1.4em; /* Más pequeño */
-    padding-bottom: 8px;
-    margin-bottom: 15px;
+    font-size: 1.2em; /* Reducido */
+    padding-bottom: 5px;
+    margin-bottom: 10px;
 }
 
 .banner-form-section input[type="text"],
 .banner-form-section textarea {
-    padding: 10px; /* Menos padding interno */
-    margin-bottom: 10px;
-    font-size: 0.95em; /* Fuente más pequeña */
+    padding: 8px; /* Reducido */
+    margin-bottom: 8px;
+    font-size: 0.9em; /* Reducido */
+}
+
+.form-actions {
+    gap: 8px;
 }
 
 
-/* --- NEWS CONTAINER & BANNER STYLES --- */
-
-.news-container {
-    max-width: 900px; /* Ancho máximo un poco menor */
-    margin: 0 auto;
-    padding: 15px; /* Menos padding del contenedor */
-}
+/* ----------------------------------------------------------------
+   ESTILOS DE PANCARTAS (NOTICIAS)
+   ---------------------------------------------------------------- */
 
 .banners-list-container {
-    gap: 15px; /* Menos espacio entre pancartas (reducido de 25px) */
+    gap: 15px; 
 }
 
 .news-banner {
-    padding: 20px; /* Reducido de 30px, clave para la compacidad */
-    border-radius: 12px; /* Borde más sutil */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); /* Sombra más suave */
+    padding: 15px 20px; /* Más pequeño y balanceado (clave para la compacidad) */
+    border-radius: 8px; 
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); /* Sombra más sutil */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .news-banner:hover {
-    transform: translateY(-2px); /* Menor levantamiento */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px); /* Menor levantamiento */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
 .banner-title {
-    font-size: 1.5em; /* Reducido de 1.8em */
-    font-weight: 700; /* Ligeramente menos negrita */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4); /* Línea más fina */
-    padding-bottom: 5px; /* Más compacto */
-    margin-bottom: 10px; /* Más compacto */
-}
-
-.banner-date {
-    font-size: 0.9em;
-    opacity: 0.8;
-    margin-top: -5px;
-    margin-bottom: 15px;
-}
-
-.banner-text {
-    font-size: 1em; /* Reducido de 1.1em */
-    line-height: 1.5; /* Reducido de 1.6 */
-}
-
-/* --- COMMENT SECTION STYLES --- */
-
-.banner-footer {
-    padding-top: 10px; /* Más compacto */
-    margin-top: 15px; /* Más compacto */
-}
-
-.comment-controls {
+    font-size: 1.3em; /* Reducido significativamente */
+    font-weight: 700;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3); 
+    padding-bottom: 5px;
     margin-bottom: 8px; /* Más compacto */
 }
 
-.like-btn, .view-comments-btn {
-    font-size: 0.9em; /* Más pequeños */
-    padding: 4px 8px;
+.banner-date {
+    font-size: 0.85em; /* Muy pequeño */
+    margin-top: -5px;
+    margin-bottom: 10px;
 }
 
-.comments-list.expanded {
-    /* Mantener el despliegue */
+.banner-text {
+    font-size: 0.95em; /* Reducido */
+    line-height: 1.4; /* Espaciado de línea más compacto */
+}
+
+.banner-text a {
+    font-weight: 600;
+}
+
+.delete-banner-btn {
+    top: -8px;
+    right: -8px;
+    width: 25px;
+    height: 25px;
+    font-size: 1em;
+    line-height: 20px;
+}
+
+/* ----------------------------------------------------------------
+   ESTILOS DE COMENTARIOS
+   ---------------------------------------------------------------- */
+
+.banner-footer {
+    padding-top: 10px; 
+    margin-top: 10px;
+}
+
+.comment-controls {
+    margin-bottom: 5px; 
+}
+
+.like-btn, .view-comments-btn {
+    font-size: 0.85em; 
+    padding: 3px 6px; /* Más pequeño */
 }
 
 .comment-item {
-    padding: 8px; /* Reducido de 10px */
-    border-radius: 6px; /* Borde más pequeño */
-    margin-bottom: 6px;
-    font-size: 0.9em; /* Comentarios más pequeños */
+    padding: 6px 8px; /* Más pequeño */
+    border-radius: 4px;
+    margin-bottom: 4px;
+    font-size: 0.85em; /* Comentarios muy pequeños */
 }
 
 .first-comment {
-    margin-bottom: 10px; /* Más compacto */
+    margin-bottom: 8px; 
 }
 
 .comment-form {
@@ -163,24 +186,48 @@ body {
 
 .comment-form input[type="text"],
 .comment-form textarea {
-    padding: 6px 8px; /* Inputs de comentario más pequeños */
-    font-size: 0.9em;
+    padding: 5px 8px; 
+    font-size: 0.85em;
+    height: 35px; /* Altura fija para el textarea en modo compacto */
 }
 
 .comment-form button {
-    padding: 6px 12px;
-    font-size: 0.9em;
+    padding: 5px 10px;
+    font-size: 0.85em;
 }
 
-/* --- Responsive adjustments --- */
-@media (max-width: 768px) {
+
+/* ----------------------------------------------------------------
+   RESPONSIVE (Ajustes para móvil)
+   ---------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+    .news-header h1 {
+        font-size: 1.6em;
+    }
     .news-banner {
-        padding: 15px; /* Aún más pequeño en móvil */
+        padding: 10px 15px; /* Máxima compacidad en móvil */
     }
     .banner-title {
-        font-size: 1.4em;
+        font-size: 1.2em;
     }
     .banner-text {
-        font-size: 0.95em;
+        font-size: 0.9em;
+    }
+    .back-btn {
+        position: static;
+        display: block;
+        margin: 0 auto 10px;
+        font-size: 0.9em;
+    }
+    .news-header {
+        padding: 15px 10px;
+    }
+    .comment-form {
+        flex-direction: column;
+        gap: 5px;
+    }
+    .comment-form button {
+        width: 100%;
     }
 }

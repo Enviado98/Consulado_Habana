@@ -24,534 +24,317 @@
   --acento-cian: #00bcd4; 
   /* Colores para el panel de tiempo */
   --tiempo-panel-rojo: #f7a2ab; 
-  --tiempo-panel-cian: #a2f7eb;
-  /* Colores para los comentarios */
-  --comentario-bg: #f5f5f5;
-  --respuesta-bg: #eaeaea;
+  --tiempo-panel-cian: #a2d9e0; 
 
-  /* NUEVOS COLORES PARA BOTONES DE ADMIN */
-  --admin-save-color: #38a169; /* Verde para Guardar */
-  --admin-add-color: #3182ce; /* Azul para Añadir */
-  --admin-delete-color: #e53e3e; /* Rojo para Eliminar */
-  --admin-exit-color: #718096; /* Gris para Desactivar */
+  /* NUEVOS COLORES PARA COMENTARIOS */
+  --color-comentario-fondo: #f8f9fa; /* Fondo Comentario Principal */
+  --color-respuesta-fondo: #f0f3f5; /* Fondo Respuesta */
+  --color-borde-hilo: #b3cdd1; /* Cian Suave para la línea del hilo */
+  
+  /* ⭐ MODIFICADO: Fondo Amarillo Intenso para el panel de estado ⭐ */
+  --fondo-panel-status: #FFD700; 
+  --borde-panel-status: #ff9800;
 }
 
 body {
+  margin: 0;
+  padding: 0; 
   font-family: 'Nunito', sans-serif;
-  background: var(--fondo-gradiente);
+  background: var(--fondo-gradiente); /* Usa el nuevo color verde claro */
   color: var(--color-texto-principal);
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  overflow-x: hidden; 
 }
 
-/* Modo Edición Visual */
-body.admin-mode .editing, body.admin-mode .editable-status {
-  border: 2px dashed var(--acento-rojo);
-  background-color: rgba(255, 255, 0, 0.15); /* Fondo sutil para indicar edición */
-  padding: 2px;
-  border-radius: 4px;
-}
-body.admin-mode .editable:focus, body.admin-mode .editable-status:focus {
-  outline: 2px solid var(--acento-rojo);
-  box-shadow: 0 0 5px rgba(239, 35, 60, 0.5);
-}
-
-/* ----------------------------------------------------------------
-   HEADER Y TÍTULOS
-   ---------------------------------------------------------------- */
+/* --- HEADER --- */
 header {
+  width: 100%;
   text-align: center;
-  padding: 20px 10px;
-  background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.6));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px var(--sombra-fuerte);
-  margin-bottom: 20px;
+  padding: 1rem; 
+  background: linear-gradient(135deg, #4f46e5, #9333ea);
+  color: white;
+  box-shadow: 0 4px 10px var(--sombra-fuerte);
 }
-
-header h1 {
-  color: var(--acento-rojo);
-  font-size: 2rem;
-  margin-bottom: 5px;
-  font-weight: 900;
-  text-shadow: 1px 1px 2px var(--sombra-suave);
-}
-
-header p {
-  color: var(--color-texto-secundario);
-  font-size: 0.9rem;
-  margin: 0;
-}
+header h1 { margin: 0; font-size: 1.3rem; font-weight: 800; }
+header p { margin: 0.3rem 0 0; font-size: 0.8rem; opacity: 0.9; }
+#fecha-actualizacion { font-weight: 900; color: #ffd700; }
 
 /* ----------------------------------------------------------------
-   PANEL DE ESTADO Y NOTICIAS
+   PANEL DE ESTADO DINÁMICO UNIFICADO ⭐ CSS AJUSTADO A COMPACTO ⭐
    ---------------------------------------------------------------- */
-
 .status-panel-container {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 10px 20px;
-    margin: 0 auto 20px;
-    max-width: 900px;
-    box-shadow: 0 2px 10px var(--sombra-suave);
-    transition: background 0.3s ease;
-}
-/* Estilo especial cuando el admin está activo */
-.status-panel-container.admin-mode {
-    background: #fff8e1; /* Fondo amarillo claro */
-    border-color: #ffb300;
+    width: 95%;
+    max-width: 800px;
+    margin: 8px auto; /* Más compacto */
+    background-color: var(--fondo-panel-status); /* Usa el AMARILLO INTENSO */
+    border: 1px solid var(--borde-panel-status); 
+    border-radius: 10px; 
+    font-size: 0.85rem; /* Más pequeño */
+    color: var(--color-texto-principal); 
+    font-weight: 700;
+    box-shadow: 0 2px 4px var(--sombra-suave);
+    padding: 8px 10px; /* Más compacto */
 }
 
 .status-panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-weight: 700;
-    margin-bottom: 8px;
-    padding-bottom: 5px;
-    border-bottom: 1px dashed var(--color-texto-secundario);
+    padding-bottom: 3px; /* Más compacto */
+    margin-bottom: 5px;
+    border-bottom: 1px dashed rgba(0,0,0,0.1);
+    font-size: 0.75rem; /* Más pequeño */
+    color: #555;
 }
-.status-panel-header span:first-child {
-    color: var(--acento-rojo);
-}
+
+/* ⭐ MODIFICACIÓN SOLICITADA: Estilo para la etiqueta de Última Edición (Caja Roja y Tamaño) ⭐ */
 #lastEditedTime {
-    font-size: 0.8rem;
-    color: var(--color-texto-secundario);
+    /* REQUISITO: Cuadro Rojo de Fondo */
+    background-color: var(--acento-rojo); 
+    color: white; 
+    border-radius: 6px; 
+    padding: 3px 5px; /* Compacto */
+    display: inline-block; /* Necesario para que el cuadro encierre el texto */
+    text-align: center;
+    line-height: 1.1; /* Compacta las líneas */
+
+    /* REQUISITO: Reducir tamaño (aprox 30% menos del 0.75rem del padre) */
+    font-size: 0.55rem; 
+    font-weight: 700;
+    flex-shrink: 0;
 }
+/* ---------------------------------------------------------------- */
+
 
 .status-panel-data {
     display: flex;
-    flex-wrap: wrap;
-    gap: 15px 30px;
-    justify-content: center;
+    justify-content: space-between; /* Distribución uniforme y compacta */
+    align-items: center;
+    flex-wrap: nowrap; /* Asegura que se mantenga en fila */
+    gap: 5px; /* Más compacto */
+    font-size: 0.9rem;
+    font-weight: 800;
     text-align: center;
+    overflow-x: auto; /* Por si acaso en móvil extremo */
 }
 
 .status-item {
     display: flex;
     flex-direction: column;
-    padding: 5px 0;
+    align-items: center;
+    padding: 3px 5px; /* Más compacto */
+    border-radius: 6px;
+    min-width: 95px; /* Ancho mínimo para mantener compacto */
+    flex-shrink: 0; /* No se encoge fácilmente */
 }
 
-.status-key {
-    font-size: 0.85rem;
-    color: var(--color-texto-secundario);
+/* Estilos de valores específicos */
+.status-item .value {
+    display: block;
+    font-size: 1rem; /* Más pequeño */
+    font-weight: 900;
+    margin-top: 2px;
+}
+
+.status-item.deficit .value {
+    color: var(--acento-rojo); 
+}
+.status-item.divisa .value {
+    color: #008000; /* Verde para divisas */
+    font-size: 1rem;
+}
+
+.status-item .label {
+    font-size: 0.7rem; /* Más pequeño */
     font-weight: 600;
+    color: #555;
     margin-bottom: 2px;
 }
 
-.status-value {
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: var(--color-texto-principal);
-}
-
-/* News Ticker (Marquesina de Noticias) */
-.news-ticker-container {
-    max-width: 900px;
-    margin: 0 auto 20px;
-    background-color: var(--acento-cian);
-    color: white;
-    padding: 8px 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px var(--sombra-suave);
-    overflow: hidden;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    border: 2px solid #0097a7;
-}
-
-.news-title {
-    flex-shrink: 0;
-    margin-right: 15px;
-}
-
-.news-content {
-    display: inline-block;
-    padding-left: 100%; /* Inicia el texto fuera de la vista */
-}
-
-/* ----------------------------------------------------------------
-   CONTROLES DE EDICIÓN Y ESTADO DE LA APP
-   ---------------------------------------------------------------- */
-
-.controls-wrapper {
-    max-width: 900px;
-    margin: 0 auto 20px;
-    text-align: center;
+/* Modo Admin: Campos de edición para el panel */
+.status-panel-container.admin-mode {
     padding: 10px;
+    border: 2px dashed var(--acento-rojo); 
 }
-
-.status-message {
+.status-panel-container.admin-mode .status-panel-data {
+    flex-direction: row; /* ⭐ MANTIENE FILA EN ADMIN MODE ⭐ */
+    flex-wrap: wrap; 
+    gap: 5px;
+}
+.status-panel-container.admin-mode .status-item {
+    width: 31%; /* Divide el espacio en 3 columnas */
+    flex-direction: column; /* Cambiado a columna para que el input sea 100% del item */
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+.status-panel-container.admin-mode input {
+    border: 1px solid var(--acento-rojo);
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
     font-weight: 700;
-    margin-bottom: 10px;
+    text-align: center; /* Centrado en columna */
+    width: 100%; /* Ocupa todo el item */
+    margin-top: 5px;
 }
-
-/* Ocultar y anular el estilo de los controles de login antiguos */
-.login-controls {
-    display: none !important; 
-}
-#loginBtn {
-    display: none !important;
-}
-
-/* Estilo para el nuevo Botón de Activación (Inicial) */
-#toggleEditModeBtn {
-    background: var(--acento-cian); 
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-weight: 900;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px var(--sombra-fuerte);
-    transition: background 0.2s ease;
-    width: 95%; /* Adapta al contenedor */
-    max-width: 450px; /* Ancho máximo para centrar */
-    margin: 10px auto;
-    display: block; 
-}
-#toggleEditModeBtn:hover {
-    background: #0097a7; /* Cian más oscuro al pasar el ratón */
-    transform: translateY(-1px);
-    box-shadow: 0 6px 8px var(--sombra-fuerte);
-}
-
-
-/* Organización y estilos del Panel de Controles de Administración */
-#adminControlsPanel {
-    /* Nueva organización: Flexbox para alinear y distribuir */
-    display: flex; 
-    flex-wrap: wrap; /* Permite que los botones se envuelvan */
-    gap: 8px; /* Espacio entre botones */
-    justify-content: center; /* Centrar los botones */
-    padding: 10px;
-    background: var(--glass-bg); /* Fondo sutil */
-    border-radius: 10px;
-    box-shadow: 0 4px 10px var(--sombra-suave);
-    margin-top: 10px; 
-    max-width: 800px;
-}
-
-/* Estilos comunes para todos los botones de Admin */
-#adminControlsPanel button.admin-btn {
-    color: white !important; 
-    font-weight: 800;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 2px 4px var(--sombra-suave);
-    transition: opacity 0.2s ease, transform 0.1s ease;
-    flex-grow: 1; /* Permite que crezcan para llenar el espacio */
-    min-width: 130px; /* Ancho mínimo razonable */
-}
-
-/* Colores específicos según la función */
-#saveBtn {
-    background-color: var(--admin-save-color) !important; /* Verde: Guardar */
-}
-#addNewsBtn {
-    background-color: var(--admin-add-color) !important; /* Azul: Añadir */
-}
-#deleteNewsBtn {
-    background-color: var(--admin-delete-color) !important; /* Rojo: Eliminar */
-}
-#logoutBtn {
-    background-color: var(--admin-exit-color) !important; /* Gris: Desactivar/Salir */
-}
-
-/* Efecto hover */
-#adminControlsPanel button.admin-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+.status-panel-container.admin-mode .status-item .label {
+    color: var(--color-texto-principal);
+    font-size: 0.8rem;
 }
 
 
 /* ----------------------------------------------------------------
-   CONTENEDOR DE TARJETAS (CARDS)
+   PANCARTA DE NOTICIAS (NEWS TICKER) 
    ---------------------------------------------------------------- */
+.news-ticker-container {
+    width: 100%;
+    background: linear-gradient(90deg, #d90429 0%, var(--acento-rojo) 100%); 
+    color: white;
+    box-shadow: 0 2px 5px var(--sombra-fuerte);
+    overflow: hidden; 
+    padding: 5px 0;
+    margin-bottom: 15px; 
+    display: flex; 
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.5); 
+    border-bottom: 1px solid rgba(0, 0, 0, 0.3); 
+    position: sticky;
+    top: 0;
+    z-index: 998; 
+}
+.news-ticker-fixed-label {
+    font-weight: 900; 
+    margin-right: 8px; 
+    padding: 0 7px; 
+    font-size: 0.75rem; 
+    background-color: rgba(0, 0, 0, 0.35); 
+    border-radius: 4px;
+    flex-shrink: 0;
+    line-height: 1.2;
+    z-index: 2; 
+}
+.news-ticker-wrap { overflow: hidden; flex-grow: 1; position: relative; height: 100%; }
+.news-ticker-content { white-space: nowrap; font-size: 0.8rem; display: inline-block; }
+.news-item { padding: 0 20px; display: inline-block; color: #f8f9fa; font-weight: 700; text-shadow: 0 0 2px rgba(0, 0, 0, 0.4); }
+.news-item small { font-weight: 600; opacity: 0.9; margin-left: 5px; font-size: 0.7rem; color: #1a1a1a; background-color: #ffc107; padding: 2px 5px; border-radius: 4px;}
+.news-item a { color: #ffcc00; text-decoration: underline; font-weight: 800; }
+@keyframes ticker-move-static { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
+
+/* ----------------------------------------------------------------
+   LOGIN Y ADMIN CONTROLES (MODIFICADO)
+   ---------------------------------------------------------------- */
+.login-controls {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; width: 95%; max-width: 550px; 
+  background: var(--glass-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
+  padding: 0.8rem; border-radius: 12px; border: 1px solid var(--glass-border); 
+  box-shadow: 0 4px 12px var(--sombra-fuerte); margin-bottom: 20px; z-index: 10; 
+}
+.login-message { font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; }
+
+
+/* --- NUEVOS ESTILOS PARA EL MODO DE EDICIÓN PÚBLICO (ACCESO DIRECTO) --- */
+#publicEditAccess { 
+  width: 100%; 
+  text-align: center;
+}
+
+#enableEditBtn {
+  background: linear-gradient(90deg, #4f46e5, #9333ea); /* Morado/Azul intenso */
+  color: white; 
+  font-size: 1rem !important; 
+  padding: 10px 20px !important; 
+  font-weight: 800 !important; 
+  border-radius: 10px !important;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
+  width: 100%; /* Ocupa todo el ancho */
+}
+#enableEditBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(79, 70, 229, 0.6);
+}
+
+
+/* --- ESTILOS MEJORADOS PARA EL PANEL DE ADMINISTRACIÓN --- */
+#adminControlsPanel { 
+  /* Mejor organización: Flex, centrado y con espacio */
+  display: none; 
+  justify-content: space-evenly; 
+  align-items: center; 
+  gap: 10px; 
+  padding: 10px; 
+  width: 100%; 
+  flex-wrap: wrap; 
+  background-color: rgba(79, 70, 229, 0.1); /* Fondo más visible */
+  border: 1px dashed #4f46e5;
+  border-radius: 12px; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow-x: hidden;
+}
+
+#adminControlsPanel button { 
+  font-size: 0.85rem; 
+  padding: 8px 12px; 
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  min-width: 120px; 
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+/* Colores según función */
+#saveBtn { 
+  background-color: var(--acento-verde); /* VERDE: Guardar / Éxito */
+} 
+#saveBtn:hover { 
+  background-color: #0c8075; 
+  transform: translateY(-1px);
+} 
+
+#addNewsBtn { 
+  background-color: var(--acento-cian); /* CIAN: Añadir / Nuevo */
+} 
+#addNewsBtn:hover { 
+  background-color: #0097a7; 
+  transform: translateY(-1px);
+} 
+
+#deleteNewsBtn { 
+  background-color: var(--acento-rojo); /* ROJO: Eliminar / Peligro */
+} 
+#deleteNewsBtn:hover { 
+  background-color: #c4021d; 
+  transform: translateY(-1px);
+} 
+
+#logoutBtn { 
+  background-color: #4b5563; /* GRIS OSCURO: Salir / Neutro */
+}
+#logoutBtn:hover { 
+  background-color: #1f2937;
+  transform: translateY(-1px);
+}
+
+
+/* ----------------------------------------------------------------
+   TARJETAS (CARDS)
+   ---------------------------------------------------------------- */
 .container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
+  gap: 10px; 
+  width: 95%;
+  max-width: 800px;
+  margin: 0 auto 20px auto; 
 }
-
-.card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 4px 12px var(--sombra-suave);
-  transition: transform 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  min-height: 120px;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px var(--sombra-fuerte);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.card span.emoji {
-  font-size: 1.8rem;
-  margin-right: 10px;
-}
-
-.card h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--acento-rojo);
-}
-
-.card-content p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--color-texto-principal);
-  flex-grow: 1;
-}
-
-.card-footer {
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.status-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-/* ----------------------------------------------------------------
-   SECCIÓN DE COMENTARIOS
-   ---------------------------------------------------------------- */
-.comments-section {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 20px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.9));
-    border-radius: 12px;
-    box-shadow: 0 8px 20px var(--sombra-fuerte);
-}
-
-.comments-section h2 {
-    text-align: center;
-    color: var(--acento-verde);
-    margin-bottom: 25px;
-    font-weight: 900;
-}
-
-.comments-display-wrap {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    margin-bottom: 20px;
-}
-
-.comments-list-container {
-    max-height: 500px;
-    overflow-y: auto;
-    padding-right: 10px; /* Para el scrollbar */
-}
-
-.comment-item {
-    background: var(--comentario-bg);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    box-shadow: 0 1px 4px var(--sombra-suave);
-}
-
-.comment-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-}
-.comment-header strong {
-    color: var(--color-texto-principal);
-    font-weight: 700;
-}
-.comment-meta {
-    color: var(--color-texto-secundario);
-    font-size: 0.8rem;
-}
-
-.comment-text {
-    margin: 5px 0 10px 0;
-    font-size: 0.95rem;
-}
-
-.comment-actions {
-    display: flex;
-    gap: 10px;
-    font-size: 0.8rem;
-}
-
-.vote-btn, .reply-toggle-btn {
-    background: var(--acento-cian);
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-weight: 700;
-}
-.vote-btn:hover, .reply-toggle-btn:hover {
-    background: #0097a7;
-}
-
-.replies-container {
-    margin-top: 10px;
-    padding-left: 20px;
-    border-left: 3px solid var(--acento-verde);
-}
-
-.reply-item {
-    background: var(--respuesta-bg);
-    padding: 8px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-/* Formulario de Comentarios y Respuestas */
-.comment-form-container, .reply-form-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 15px;
-    border: 1px dashed var(--acento-rojo);
-    border-radius: 8px;
-    margin-top: 15px;
-}
-
-.reply-form-container {
-    margin-top: 10px;
-    border: 1px dashed var(--acento-verde);
-    background-color: #f7fff7;
-}
-
-
-.comment-form-container input,
-.comment-form-container textarea,
-.reply-form-container input,
-.reply-form-container textarea {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-family: inherit;
-    font-size: 1rem;
-    resize: vertical;
-}
-
-.comment-form-container button, .reply-form-container button {
-    padding: 10px 15px;
-    background: var(--acento-rojo);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: 700;
-    transition: background 0.2s;
-}
-
-.comment-form-container button:hover, .reply-form-container button:hover {
-    background: #c71e33;
-}
-
-/* ----------------------------------------------------------------
-   FOOTER
-   ---------------------------------------------------------------- */
-
-footer {
-  text-align: center;
-  padding: 20px;
-  margin-top: 30px;
-  border-top: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  font-size: 0.85rem;
-  color: var(--color-texto-secundario);
-}
-
-/* ----------------------------------------------------------------
-   MEDIA QUERIES (AJUSTES RESPONSIVOS)
-   ---------------------------------------------------------------- */
-
-@media (max-width: 900px) {
-    .container {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-    }
-    .status-panel-container, .news-ticker-container, .controls-wrapper, .comments-section {
-        margin-left: 10px;
-        margin-right: 10px;
-    }
-    .status-panel-data {
-        gap: 10px 20px;
-    }
-}
-
-@media (max-width: 600px) {
-    header h1 { font-size: 1.2rem; }
-    .container { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 10px; }
-    .card { min-height: 95px; padding: 6px; }
-    .card span.emoji { font-size: 1.3rem; }
-    .card h3 { font-size: 0.85rem; }
-    .card-content p { font-size: 0.75rem; }
-    
-    /* Ajuste de controles de Admin en móvil */
-    #adminControlsPanel {
-        gap: 5px;
-        padding: 8px;
-    }
-    #adminControlsPanel button.admin-btn {
-        font-size: 0.7rem; 
-        padding: 5px 6px; 
-        min-width: 100px; 
-        flex-grow: 1;
-    }
-
-    .comments-section h2 { font-size: 1.1rem; }
-    .comment-actions { font-size: 0.7rem; gap: 5px; }
-    .replies-container { padding-left: 10px; }
-    .comment-item { padding: 8px; }
-    .reply-item { padding: 6px; }
-
-    /* ⭐ AJUSTES ESPECÍFICOS PARA MANTENER EL PANEL COMPACTO Y HORIZONTAL EN MÓVIL ⭐ */
-    .status-panel-container {
-        font-size: 0.8rem;
-        padding: 8px 10px;
-    }
-    .status-panel-data {
-        flex-direction: row; /* MANTIENE EN FILA */
-        flex-wrap: nowrap;
-        overflow-x: auto; /* Permite scroll horizontal si es necesario */
-        justify-content: flex-start;
-        padding-bottom: 5px;
-    }
-    .status-item {
-        flex-shrink: 0; /* Evita que los ítems se compriman */
-    }
-}
+... (Resto de CSS sin modificar)

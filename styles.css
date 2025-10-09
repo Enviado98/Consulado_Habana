@@ -24,421 +24,495 @@
   --acento-cian: #00bcd4; 
   /* Colores para el panel de tiempo */
   --tiempo-panel-rojo: #f7a2ab; 
-  --tiempo-panel-cian: #a2d9e0; 
+  --tiempo-panel-cian: #a2f7eb;
+  /* Colores para los comentarios */
+  --comentario-bg: #f5f5f5;
+  --respuesta-bg: #eaeaea;
 
-  /* NUEVOS COLORES PARA COMENTARIOS */
-  --color-comentario-fondo: #f8f9fa; /* Fondo Comentario Principal */
-  --color-respuesta-fondo: #f0f3f5; /* Fondo Respuesta */
-  --color-borde-hilo: #b3cdd1; /* Cian Suave para la línea del hilo */
-  
-  /* ⭐ MODIFICADO: Fondo Amarillo Intenso para el panel de estado ⭐ */
-  --fondo-panel-status: #FFD700; 
-  --borde-panel-status: #ff9800;
+  /* NUEVOS COLORES PARA BOTONES DE ADMIN */
+  --admin-save-color: #38a169; /* Verde para Guardar */
+  --admin-add-color: #3182ce; /* Azul para Añadir */
+  --admin-delete-color: #e53e3e; /* Rojo para Eliminar */
+  --admin-exit-color: #718096; /* Gris para Desactivar */
 }
 
 body {
-  margin: 0;
-  padding: 0; 
   font-family: 'Nunito', sans-serif;
-  background: var(--fondo-gradiente); /* Usa el nuevo color verde claro */
+  background: var(--fondo-gradiente);
   color: var(--color-texto-principal);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  overflow-x: hidden; 
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
 }
 
-/* --- HEADER --- */
-header {
-  width: 100%;
-  text-align: center;
-  padding: 1rem; 
-  background: linear-gradient(135deg, #4f46e5, #9333ea);
-  color: white;
-  box-shadow: 0 4px 10px var(--sombra-fuerte);
+/* Modo Edición Visual */
+body.admin-mode .editing, body.admin-mode .editable-status {
+  border: 2px dashed var(--acento-rojo);
+  background-color: rgba(255, 255, 0, 0.15); /* Fondo sutil para indicar edición */
+  padding: 2px;
+  border-radius: 4px;
 }
-header h1 { margin: 0; font-size: 1.3rem; font-weight: 800; }
-header p { margin: 0.3rem 0 0; font-size: 0.8rem; opacity: 0.9; }
-#fecha-actualizacion { font-weight: 900; color: #ffd700; }
+body.admin-mode .editable:focus, body.admin-mode .editable-status:focus {
+  outline: 2px solid var(--acento-rojo);
+  box-shadow: 0 0 5px rgba(239, 35, 60, 0.5);
+}
 
 /* ----------------------------------------------------------------
-   PANEL DE ESTADO DINÁMICO UNIFICADO ⭐ CSS AJUSTADO A COMPACTO ⭐
+   HEADER Y TÍTULOS
    ---------------------------------------------------------------- */
+header {
+  text-align: center;
+  padding: 20px 10px;
+  background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.6));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px var(--sombra-fuerte);
+  margin-bottom: 20px;
+}
+
+header h1 {
+  color: var(--acento-rojo);
+  font-size: 2rem;
+  margin-bottom: 5px;
+  font-weight: 900;
+  text-shadow: 1px 1px 2px var(--sombra-suave);
+}
+
+header p {
+  color: var(--color-texto-secundario);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ----------------------------------------------------------------
+   PANEL DE ESTADO Y NOTICIAS
+   ---------------------------------------------------------------- */
+
 .status-panel-container {
-    width: 95%;
-    max-width: 800px;
-    margin: 8px auto; /* Más compacto */
-    background-color: var(--fondo-panel-status); /* Usa el AMARILLO INTENSO */
-    border: 1px solid var(--borde-panel-status); 
-    border-radius: 10px; 
-    font-size: 0.85rem; /* Más pequeño */
-    color: var(--color-texto-principal); 
-    font-weight: 700;
-    box-shadow: 0 2px 4px var(--sombra-suave);
-    padding: 8px 10px; /* Más compacto */
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 10px 20px;
+    margin: 0 auto 20px;
+    max-width: 900px;
+    box-shadow: 0 2px 10px var(--sombra-suave);
+    transition: background 0.3s ease;
+}
+/* Estilo especial cuando el admin está activo */
+.status-panel-container.admin-mode {
+    background: #fff8e1; /* Fondo amarillo claro */
+    border-color: #ffb300;
 }
 
 .status-panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 3px; /* Más compacto */
-    margin-bottom: 5px;
-    border-bottom: 1px dashed rgba(0,0,0,0.1);
-    font-size: 0.75rem; /* Más pequeño */
-    color: #555;
-}
-
-/* ⭐ MODIFICACIÓN SOLICITADA: Estilo para la etiqueta de Última Edición (Caja Roja y Tamaño) ⭐ */
-#lastEditedTime {
-    /* REQUISITO: Cuadro Rojo de Fondo */
-    background-color: var(--acento-rojo); 
-    color: white; 
-    border-radius: 6px; 
-    padding: 3px 5px; /* Compacto */
-    display: inline-block; /* Necesario para que el cuadro encierre el texto */
-    text-align: center;
-    line-height: 1.1; /* Compacta las líneas */
-
-    /* REQUISITO: Reducir tamaño (aprox 30% menos del 0.75rem del padre) */
-    font-size: 0.55rem; 
     font-weight: 700;
-    flex-shrink: 0;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed var(--color-texto-secundario);
 }
-/* ---------------------------------------------------------------- */
-
+.status-panel-header span:first-child {
+    color: var(--acento-rojo);
+}
+#lastEditedTime {
+    font-size: 0.8rem;
+    color: var(--color-texto-secundario);
+}
 
 .status-panel-data {
     display: flex;
-    justify-content: space-between; /* Distribución uniforme y compacta */
-    align-items: center;
-    flex-wrap: nowrap; /* Asegura que se mantenga en fila */
-    gap: 5px; /* Más compacto */
-    font-size: 0.9rem;
-    font-weight: 800;
+    flex-wrap: wrap;
+    gap: 15px 30px;
+    justify-content: center;
     text-align: center;
-    overflow-x: auto; /* Por si acaso en móvil extremo */
 }
 
 .status-item {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 3px 5px; /* Más compacto */
-    border-radius: 6px;
-    min-width: 95px; /* Ancho mínimo para mantener compacto */
-    flex-shrink: 0; /* No se encoge fácilmente */
+    padding: 5px 0;
 }
 
-/* Estilos de valores específicos */
-.status-item .value {
-    display: block;
-    font-size: 1rem; /* Más pequeño */
-    font-weight: 900;
-    margin-top: 2px;
-}
-
-.status-item.deficit .value {
-    color: var(--acento-rojo); 
-}
-.status-item.divisa .value {
-    color: #008000; /* Verde para divisas */
-    font-size: 1rem;
-}
-
-.status-item .label {
-    font-size: 0.7rem; /* Más pequeño */
+.status-key {
+    font-size: 0.85rem;
+    color: var(--color-texto-secundario);
     font-weight: 600;
-    color: #555;
     margin-bottom: 2px;
 }
 
-/* Modo Admin: Campos de edición para el panel */
-.status-panel-container.admin-mode {
-    padding: 10px;
-    border: 2px dashed var(--acento-rojo); 
-}
-.status-panel-container.admin-mode .status-panel-data {
-    flex-direction: row; /* ⭐ MANTIENE FILA EN ADMIN MODE ⭐ */
-    flex-wrap: wrap; 
-    gap: 5px;
-}
-.status-panel-container.admin-mode .status-item {
-    width: 31%; /* Divide el espacio en 3 columnas */
-    flex-direction: column; /* Cambiado a columna para que el input sea 100% del item */
-    justify-content: center;
-    background-color: rgba(255, 255, 255, 0.7);
-    padding: 5px;
-    border: 1px solid #ccc;
-}
-.status-panel-container.admin-mode input {
-    border: 1px solid var(--acento-rojo);
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-align: center; /* Centrado en columna */
-    width: 100%; /* Ocupa todo el item */
-    margin-top: 5px;
-}
-.status-panel-container.admin-mode .status-item .label {
+.status-value {
+    font-size: 1.2rem;
+    font-weight: 800;
     color: var(--color-texto-principal);
-    font-size: 0.8rem;
 }
 
-
-/* ----------------------------------------------------------------
-   PANCARTA DE NOTICIAS (NEWS TICKER) 
-   ---------------------------------------------------------------- */
+/* News Ticker (Marquesina de Noticias) */
 .news-ticker-container {
-    width: 100%;
-    background: linear-gradient(90deg, #d90429 0%, var(--acento-rojo) 100%); 
+    max-width: 900px;
+    margin: 0 auto 20px;
+    background-color: var(--acento-cian);
     color: white;
-    box-shadow: 0 2px 5px var(--sombra-fuerte);
-    overflow: hidden; 
-    padding: 5px 0;
-    margin-bottom: 15px; 
-    display: flex; 
+    padding: 8px 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px var(--sombra-suave);
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
     align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.5); 
-    border-bottom: 1px solid rgba(0, 0, 0, 0.3); 
-    position: sticky;
-    top: 0;
-    z-index: 998; 
+    border: 2px solid #0097a7;
 }
-.news-ticker-fixed-label {
-    font-weight: 900; 
-    margin-right: 8px; 
-    padding: 0 7px; 
-    font-size: 0.75rem; 
-    background-color: rgba(0, 0, 0, 0.35); 
-    border-radius: 4px;
+
+.news-title {
     flex-shrink: 0;
-    line-height: 1.2;
-    z-index: 2; 
+    margin-right: 15px;
 }
-.news-ticker-wrap { overflow: hidden; flex-grow: 1; position: relative; height: 100%; }
-.news-ticker-content { white-space: nowrap; font-size: 0.8rem; display: inline-block; }
-.news-item { padding: 0 20px; display: inline-block; color: #f8f9fa; font-weight: 700; text-shadow: 0 0 2px rgba(0, 0, 0, 0.4); }
-.news-item small { font-weight: 600; opacity: 0.9; margin-left: 5px; font-size: 0.7rem; color: #1a1a1a; background-color: #ffc107; padding: 2px 5px; border-radius: 4px;}
-.news-item a { color: #ffcc00; text-decoration: underline; font-weight: 800; }
-@keyframes ticker-move-static { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
+.news-content {
+    display: inline-block;
+    padding-left: 100%; /* Inicia el texto fuera de la vista */
+}
 
 /* ----------------------------------------------------------------
-   LOGIN Y ADMIN CONTROLES 
+   CONTROLES DE EDICIÓN Y ESTADO DE LA APP
    ---------------------------------------------------------------- */
+
+.controls-wrapper {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    text-align: center;
+    padding: 10px;
+}
+
+.status-message {
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+/* Ocultar y anular el estilo de los controles de login antiguos */
 .login-controls {
-  display: flex; flex-direction: column; align-items: center; gap: 10px; width: 95%; max-width: 550px; 
-  background: var(--glass-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
-  padding: 0.8rem; border-radius: 12px; border: 1px solid var(--glass-border); 
-  box-shadow: 0 4px 12px var(--sombra-fuerte); margin-bottom: 20px; z-index: 10; 
+    display: none !important; 
 }
-.login-message { font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; }
-#loginForm { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 5px; width: 100%; }
-#loginForm input { flex-grow: 1; width: 100%; min-width: 70px; }
-.login-controls input { border: 1px solid #ddd; border-radius: 8px; padding: 6px 8px; font-size: 0.8rem; font-family: 'Nunito', sans-serif; }
-.login-controls button {
-  background: #4f46e5; color: white; border: none; border-radius: 8px; padding: 6px 10px; cursor: pointer;
-  font-size: 0.8rem; font-weight: 700; transition: all 0.3s ease; flex-shrink: 0; 
+#loginBtn {
+    display: none !important;
 }
-#adminControlsPanel { display: none; justify-content: center; align-items: center; gap: 8px; padding: 8px; width: 100%; flex-wrap: wrap; background-color: rgba(0, 0, 0, 0.05); border-radius: 8px; overflow-x: hidden; }
-#adminControlsPanel button { font-size: 0.8rem; padding: 7px 10px; }
-#saveBtn { background-color: var(--acento-verde); } 
-#saveBtn:hover { background-color: #0c8075; } 
+
+/* Estilo para el nuevo Botón de Activación (Inicial) */
+#toggleEditModeBtn {
+    background: var(--acento-cian); 
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-weight: 900;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px var(--sombra-fuerte);
+    transition: background 0.2s ease;
+    width: 95%; /* Adapta al contenedor */
+    max-width: 450px; /* Ancho máximo para centrar */
+    margin: 10px auto;
+    display: block; 
+}
+#toggleEditModeBtn:hover {
+    background: #0097a7; /* Cian más oscuro al pasar el ratón */
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px var(--sombra-fuerte);
+}
+
+
+/* Organización y estilos del Panel de Controles de Administración */
+#adminControlsPanel {
+    /* Nueva organización: Flexbox para alinear y distribuir */
+    display: flex; 
+    flex-wrap: wrap; /* Permite que los botones se envuelvan */
+    gap: 8px; /* Espacio entre botones */
+    justify-content: center; /* Centrar los botones */
+    padding: 10px;
+    background: var(--glass-bg); /* Fondo sutil */
+    border-radius: 10px;
+    box-shadow: 0 4px 10px var(--sombra-suave);
+    margin-top: 10px; 
+    max-width: 800px;
+}
+
+/* Estilos comunes para todos los botones de Admin */
+#adminControlsPanel button.admin-btn {
+    color: white !important; 
+    font-weight: 800;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px var(--sombra-suave);
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    flex-grow: 1; /* Permite que crezcan para llenar el espacio */
+    min-width: 130px; /* Ancho mínimo razonable */
+}
+
+/* Colores específicos según la función */
+#saveBtn {
+    background-color: var(--admin-save-color) !important; /* Verde: Guardar */
+}
+#addNewsBtn {
+    background-color: var(--admin-add-color) !important; /* Azul: Añadir */
+}
+#deleteNewsBtn {
+    background-color: var(--admin-delete-color) !important; /* Rojo: Eliminar */
+}
+#logoutBtn {
+    background-color: var(--admin-exit-color) !important; /* Gris: Desactivar/Salir */
+}
+
+/* Efecto hover */
+#adminControlsPanel button.admin-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
 
 /* ----------------------------------------------------------------
-   TARJETAS (CARDS)
+   CONTENEDOR DE TARJETAS (CARDS)
    ---------------------------------------------------------------- */
+
 .container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
-  gap: 10px; 
-  width: 95%;
-  max-width: 800px; 
-  padding: 15px; 
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .card {
   background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px); 
   border: 1px solid var(--glass-border);
-  border-radius: 16px; 
-  box-shadow: 0 6px 15px var(--sombra-suave);
-  padding: 8px; 
-  padding-top: 15px; 
-  text-align: center;
-  color: var(--color-texto-principal);
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s, background 0.3s; 
-  min-height: 110px; 
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 12px var(--sombra-suave);
+  transition: transform 0.2s ease;
   display: flex;
   flex-direction: column;
-  position: relative; 
-  cursor: pointer; 
-  overflow: hidden; 
+  min-height: 120px;
 }
 
-/* --- ESTILOS DE ESTADO (Web 1) --- */
-.card-recent:not(.admin-mode) {
-    background: rgba(239, 35, 60, 0.1); 
-    box-shadow: 0 0 10px rgba(239, 35, 60, 0.5), 0 6px 15px var(--sombra-suave);
-    border: 1px solid rgba(239, 35, 60, 0.4); 
-}
-.card-old:not(.admin-mode) {
-    background: rgba(0, 188, 212, 0.1); 
-    box-shadow: 0 0 8px rgba(0, 188, 212, 0.4), 0 6px 15px var(--sombra-suave);
-    border: 1px solid rgba(0, 188, 212, 0.3); 
-}
-.card:hover:not(.admin-mode) {
-  transform: translateY(-6px);
-  background: rgba(255, 255, 255, 0.5); 
-  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-}
-.card.show-time-panel {
-    transform: translateY(-6px); 
-    background: rgba(255, 255, 255, 0.5); 
-    box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px var(--sombra-fuerte);
 }
 
-/* *** LABEL DE RECIENTE COMPACTO (Web 1 REINTRODUCIDO) *** */
-.card-label {
-    position: absolute; 
-    top: -1px; 
-    right: -1px; 
-    font-weight: 900;
-    padding: 2px 6px;
-    border-radius: 0 15px 0 15px; 
-    z-index: 10;
-    font-size: 0.55rem; 
-    line-height: 1;
-    display: none; /* Se muestra con JS solo si es reciente */
-}
-.card-label[style*="acento-cian"] {
-    color: var(--color-texto-principal); 
-    font-weight: 700; 
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-.card span.emoji { font-size: 1.5rem; display: block; margin-bottom: 3px; }
-.card h3 { margin: 0; font-size: 0.9rem; font-weight: 800; color: #1a1a1a; margin-top: 5px; }
-.card-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-.card-content p { margin: 4px 0 0; font-size: 0.8rem; color: #333; white-space: pre-wrap; text-align: center; }
-
-/* --- CAMPOS DE EDICIÓN EN MODO ADMIN (MEJORADOS) --- */
-.card .editable-content {
-    width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 8px;
-    font-size: 0.85rem; resize: vertical; min-height: 50px; margin-top: 5px;
-    font-family: 'Nunito', sans-serif; box-sizing: border-box;
+.card span.emoji {
+  font-size: 1.8rem;
+  margin-right: 10px;
 }
-.card .editable-title, .card .editable-emoji {
-    border: 1px solid #4f46e5; padding: 4px; border-radius: 4px; 
-    text-align: center; font-weight: 700; margin-bottom: 5px; 
-}
-.card .editable-emoji { width: 1.5rem; height: 1.5rem; font-size: 1.2rem; margin: 0 auto; display: block; }
-.card .editable-title { font-size: 0.85rem; }
 
-/* PANEL DESLIZABLE DE TIEMPO */
-.card-time-panel {
-    position: absolute; bottom: 0; left: 0; width: 100%; padding: 6px 8px; 
-    font-size: 0.7rem; font-weight: 700; color: #1a1a1a; font-family: 'Nunito', sans-serif; 
-    background: white; transition: transform 0.3s ease-out; transform: translateY(100%); 
-    border-radius: 0 0 16px 16px; text-align: center; box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+.card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--acento-rojo);
 }
-.card.show-time-panel .card-time-panel { transform: translateY(0); }
 
+.card-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-texto-principal);
+  flex-grow: 1;
+}
+
+.card-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.status-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
 
 /* ----------------------------------------------------------------
-   COMENTARIOS Y HILOS (Web 2) - ESTILOS MEJORADOS
+   SECCIÓN DE COMENTARIOS
    ---------------------------------------------------------------- */
 .comments-section {
-    width: 95%; max-width: 800px; padding: 20px; margin: 20px 0;
-    background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border); border-radius: 16px; box-shadow: 0 4px 15px var(--sombra-suave);
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.9));
+    border-radius: 12px;
+    box-shadow: 0 8px 20px var(--sombra-fuerte);
 }
-.comments-section h2 { font-size: 1.3rem; margin-bottom: 15px; }
-.comments-display-wrap { max-height: 400px; padding: 12px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.85); overflow-y: auto; border-radius: 8px; border: 1px solid var(--color-borde-hilo); }
 
-/* Contenedor del Comentario Principal */
-.comment-item { 
-    border-bottom: 1px dashed #ccc; padding: 12px; margin-bottom: 10px; 
-    background-color: var(--color-comentario-fondo);
+.comments-section h2 {
+    text-align: center;
+    color: var(--acento-verde);
+    margin-bottom: 25px;
+    font-weight: 900;
+}
+
+.comments-display-wrap {
+    background: white;
+    padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-.comment-item:last-child { border-bottom: none; }
-
-/* Nombre del Comentario Principal */
-.comment-item > strong.comment-name { 
-    font-size: 1rem; 
-    font-weight: 900; 
-    border-bottom: 2px solid #ddd; 
-    padding-bottom: 4px;
-    margin-bottom: 5px;
-    color: var(--comment-color, #333); 
-    display: block; 
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
 }
 
-.comment-content { font-size: 0.85rem; color: #333; margin-left: 0; margin-top: 5px; }
-.comment-date { font-size: 0.65rem; color: var(--color-texto-secundario); display: block; text-align: right; }
-.comment-form-container input, .comment-form-container textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Nunito', sans-serif; box-sizing: border-box; }
-#publishCommentBtn { background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background 0.3s; width: 100%; }
-#publishCommentBtn:hover { background: #059669; }
-
-/* Likes y Respuestas */
-.comment-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 5px; font-size: 0.8rem; }
-.like-button { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 5px; line-height: 1; transition: transform 0.1s ease; }
-.like-button:hover { transform: scale(1.1); }
-.like-button .heart { color: #ccc; }
-.like-button.liked .heart { color: var(--acento-rojo); }
-.like-count { font-weight: 700; color: var(--color-texto-principal); }
-.reply-form-toggle { display: inline-block; margin-left: 10px; font-size: 0.75rem; color: var(--acento-verde); cursor: pointer; font-weight: 700; }
-.reply-form { display: none; margin-top: 10px; padding: 10px; background: rgba(240, 240, 240, 0.8); border-radius: 8px; }
-.reply-form input, .reply-form textarea { width: 100%; margin-bottom: 8px; font-size: 0.75rem; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Nunito', sans-serif; box-sizing: border-box; }
-.reply-form button { background: var(--acento-verde); color: white; border: none; padding: 6px 10px; font-size: 0.75rem; width: 100%; border-radius: 6px; cursor: pointer; }
-
-/* REGLAS PARA RESPUESTAS (HILOS) - MEJORA ESTÉTICA */
-.replies-container { 
-    padding-left: 15px; 
-    margin-top: 10px; 
-    border-left: 3px solid var(--color-borde-hilo); 
+.comments-list-container {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px; /* Para el scrollbar */
 }
-.reply-item { 
-    margin-top: 10px; 
-    padding: 8px; 
-    background-color: var(--color-respuesta-fondo); /* Fondo diferente para respuestas */
-    border-radius: 6px;
-    border-top: none; /* Elimina la línea punteada */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+
+.comment-item {
+    background: var(--comentario-bg);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 4px var(--sombra-suave);
 }
-.reply-item > span.comment-name { /* Estilo del nombre de la respuesta */
-    font-weight: 800;
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
     font-size: 0.9rem;
-    color: var(--comment-color, #444);
-    display: inline;
+    margin-bottom: 5px;
 }
-.replies-container .reply-item:not(:first-child) { display: none; }
-.replies-container.expanded .reply-item { display: block; }
-
-.reply-toggle { 
-    display: block; 
-    margin: 8px 0; 
-    font-size: 0.75rem; 
-    color: var(--acento-cian); 
-    cursor: pointer; 
-    font-weight: 800; 
-    text-decoration: underline;
+.comment-header strong {
+    color: var(--color-texto-principal);
+    font-weight: 700;
+}
+.comment-meta {
+    color: var(--color-texto-secundario);
+    font-size: 0.8rem;
 }
 
+.comment-text {
+    margin: 5px 0 10px 0;
+    font-size: 0.95rem;
+}
 
-/* FOOTER */
+.comment-actions {
+    display: flex;
+    gap: 10px;
+    font-size: 0.8rem;
+}
+
+.vote-btn, .reply-toggle-btn {
+    background: var(--acento-cian);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: 700;
+}
+.vote-btn:hover, .reply-toggle-btn:hover {
+    background: #0097a7;
+}
+
+.replies-container {
+    margin-top: 10px;
+    padding-left: 20px;
+    border-left: 3px solid var(--acento-verde);
+}
+
+.reply-item {
+    background: var(--respuesta-bg);
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Formulario de Comentarios y Respuestas */
+.comment-form-container, .reply-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    border: 1px dashed var(--acento-rojo);
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.reply-form-container {
+    margin-top: 10px;
+    border: 1px dashed var(--acento-verde);
+    background-color: #f7fff7;
+}
+
+
+.comment-form-container input,
+.comment-form-container textarea,
+.reply-form-container input,
+.reply-form-container textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.comment-form-container button, .reply-form-container button {
+    padding: 10px 15px;
+    background: var(--acento-rojo);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.2s;
+}
+
+.comment-form-container button:hover, .reply-form-container button:hover {
+    background: #c71e33;
+}
+
+/* ----------------------------------------------------------------
+   FOOTER
+   ---------------------------------------------------------------- */
+
 footer {
-    padding: 20px 15px; background: var(--glass-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    border-radius: 16px 16px 0 0; border-top: 1px solid var(--glass-border); margin-top: 25px; 
-    width: 100%; max-width: 800px; text-align: center; font-size: 0.8rem; color: var(--color-texto-principal);
+  text-align: center;
+  padding: 20px;
+  margin-top: 30px;
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  font-size: 0.85rem;
+  color: var(--color-texto-secundario);
 }
 
-/* MEDIA QUERIES (Ajustes para móviles) */
+/* ----------------------------------------------------------------
+   MEDIA QUERIES (AJUSTES RESPONSIVOS)
+   ---------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+    .container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    .status-panel-container, .news-ticker-container, .controls-wrapper, .comments-section {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    .status-panel-data {
+        gap: 10px 20px;
+    }
+}
+
 @media (max-width: 600px) {
     header h1 { font-size: 1.2rem; }
     .container { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 10px; }
@@ -446,7 +520,19 @@ footer {
     .card span.emoji { font-size: 1.3rem; }
     .card h3 { font-size: 0.85rem; }
     .card-content p { font-size: 0.75rem; }
-    .login-controls input, .login-controls button, #adminControlsPanel button { font-size: 0.75rem; padding: 6px 8px; }
+    
+    /* Ajuste de controles de Admin en móvil */
+    #adminControlsPanel {
+        gap: 5px;
+        padding: 8px;
+    }
+    #adminControlsPanel button.admin-btn {
+        font-size: 0.7rem; 
+        padding: 5px 6px; 
+        min-width: 100px; 
+        flex-grow: 1;
+    }
+
     .comments-section h2 { font-size: 1.1rem; }
     .comment-actions { font-size: 0.7rem; gap: 5px; }
     .replies-container { padding-left: 10px; }
@@ -461,23 +547,11 @@ footer {
     .status-panel-data {
         flex-direction: row; /* MANTIENE EN FILA */
         flex-wrap: nowrap;
-        overflow-x: auto; /* Permite desplazamiento si los 3 no caben */
+        overflow-x: auto; /* Permite scroll horizontal si es necesario */
+        justify-content: flex-start;
+        padding-bottom: 5px;
     }
     .status-item {
-        min-width: 90px; /* Ancho fijo para que todos quepan */
-        flex-shrink: 0;
-    }
-    .status-panel-container.admin-mode .status-panel-data {
-        flex-direction: row; 
-        flex-wrap: wrap; 
-        gap: 5px;
-    }
-    .status-panel-container.admin-mode .status-item {
-        flex-direction: column; 
-        width: 31%; 
-    }
-    .status-panel-container.admin-mode input {
-        width: 100%;
-        text-align: center;
+        flex-shrink: 0; /* Evita que los ítems se compriman */
     }
 }

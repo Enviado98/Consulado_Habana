@@ -10,9 +10,9 @@
   --color-texto-secundario: #8d99ae; /* Gris Suave */
   --acento-rojo: #ef233c; /* Rojo Consular */
   --acento-verde: #0d9488; /* Verde Guardar */
-  /* ⭐ MODIFICADO: FONDO AMARILLO SUAVE PARA CUMPLIR REQUISITO ⭐ */
-  --fondo-principal: #fffbeb; 
-  --fondo-gradiente: var(--fondo-principal); 
+  /* ⭐ MODIFICADO: FONDO VERDE CLARO DEGRADADO (FONDO GENERAL DE LA WEB) ⭐ */
+  --fondo-principal: #e6ffe6; 
+  --fondo-gradiente: linear-gradient(180deg, var(--fondo-principal) 0%, #f0fff0 100%); 
   --sombra-fuerte: rgba(0, 0, 0, 0.25);
   --sombra-suave: rgba(0, 0, 0, 0.1);
   /* Glassmorphism settings - CLAVE PARA LA 'BELLEZA' */
@@ -22,402 +22,646 @@
   --acento-cian: #00bcd4; 
   /* Colores para el panel de tiempo */
   --tiempo-panel-rojo: #f7a2ab; 
-  --tiempo-panel-cian: #a2d9e0; 
+  --tiempo-panel-cian: #c4f0f7;
+  /* Color del panel de estado - ⭐ MODIFICADO: AMARILLO INTENSO ⭐ */
+  --fondo-panel-status: #ffd400; 
 
-  /* NUEVOS COLORES PARA COMENTARIOS */
-  --color-comentario-fondo: #f8f9fa; /* Fondo Comentario Principal */
-  --color-respuesta-fondo: #f0f3f5; /* Fondo Respuesta */
-  --color-borde-hilo: #b3cdd1; /* Cian Suave para la línea del hilo */
-  
-  /* Color de fondo para el nuevo panel unificado */
-  --fondo-panel-status: #fbf0c4; /* ⭐ MODIFICADO: Amarillo/Crema para el panel ⭐ */
-  --borde-panel-status: #ff9800;
+  /* Colores de comentarios y respuestas */
+  --color-comentario-fondo: #ffffff;
+  --color-respuesta-fondo: #f7f7f7;
+  --color-borde-hilo: #00bcd433; /* Cian suave */
+  --color-like: #ff3864; 
 }
 
 body {
-  margin: 0;
-  padding: 0; 
   font-family: 'Nunito', sans-serif;
-  background: var(--fondo-gradiente); /* Usa el nuevo color amarillo suave */
+  margin: 0;
+  padding: 0;
   color: var(--color-texto-principal);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: var(--fondo-gradiente); /* Uso del degradado en el body */
   min-height: 100vh;
-  overflow-x: hidden; 
 }
-
-/* --- HEADER --- */
-header {
-  width: 100%;
-  text-align: center;
-  padding: 1rem; 
-  background: linear-gradient(135deg, #4f46e5, #9333ea);
-  color: white;
-  box-shadow: 0 4px 10px var(--sombra-fuerte);
-}
-header h1 { margin: 0; font-size: 1.3rem; font-weight: 800; }
-header p { margin: 0.3rem 0 0; font-size: 0.8rem; opacity: 0.9; }
-#fecha-actualizacion { font-weight: 900; color: #ffd700; }
 
 /* ----------------------------------------------------------------
-   PANEL DE ESTADO DINÁMICO UNIFICADO ⭐ CSS AJUSTADO A COMPACTO ⭐
+   HEADER Y PANCARTA DE NOTICIAS (TICKER)
+   ---------------------------------------------------------------- */
+header {
+  text-align: center;
+  padding: 20px 10px;
+  background: var(--fondo-gradiente); /* ⭐ MODIFICADO: APLICACIÓN DE DEGRADADO AL HEADER ⭐ */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: var(--sombra-suave);
+}
+
+header h1 {
+  margin: 0 0 5px 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+header p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-texto-secundario);
+}
+
+/* ... (El resto del ticker CSS permanece igual) ... */
+.news-ticker-container {
+    position: sticky;
+    top: 0px; 
+    z-index: 1001; /* Asegura que esté por encima del header al hacer scroll */
+    background-color: var(--acento-rojo);
+    color: white;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px var(--sombra-suave);
+}
+
+.news-ticker-label {
+    flex-shrink: 0;
+    font-weight: 700;
+    margin-right: 15px;
+    animation: pulse 1s infinite;
+}
+/* ----------------------------------------------------------------
+   PANEL DE ESTADO ECONÓMICO Y ENERGÉTICO
    ---------------------------------------------------------------- */
 .status-panel-container {
-    width: 95%;
-    max-width: 800px;
-    margin: 8px auto; /* Más compacto */
+    /* Fondo: ⭐ MODIFICADO A AMARILLO INTENSO ⭐ */
     background-color: var(--fondo-panel-status); 
-    border: 1px solid var(--borde-panel-status); 
-    border-radius: 10px; 
-    font-size: 0.85rem; /* Más pequeño */
-    color: var(--color-texto-principal); 
+    color: var(--color-texto-principal);
+    padding: 12px 15px;
+    margin: 10px auto;
+    max-width: 900px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px var(--sombra-suave);
+    font-size: 1rem;
     font-weight: 700;
-    box-shadow: 0 2px 4px var(--sombra-suave);
-    padding: 8px 10px; /* Más compacto */
+    display: flex;
+    flex-direction: column;
 }
 
 .status-panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 3px; /* Más compacto */
-    margin-bottom: 5px;
-    border-bottom: 1px dashed rgba(0,0,0,0.1);
-    font-size: 0.75rem; /* Más pequeño */
-    color: #555;
+    margin-bottom: 8px;
+    gap: 10px; /* Espacio entre los elementos */
+}
+
+.status-panel-header span:first-child {
+    font-size: 1.1rem;
+    flex-grow: 1; /* Permite que el título ocupe el espacio restante */
+}
+
+/* Estilo para la fecha de última edición */
+#lastEditedTime {
+    /* Tamaño: ⭐ MODIFICADO A 30% MÁS PEQUEÑO ⭐ */
+    font-size: 0.7rem; 
+    font-weight: 900;
+    color: white;
+    /* Fondo: ⭐ MODIFICADO A ROJO PARA LLAMAR LA ATENCIÓN ⭐ */
+    background-color: var(--acento-rojo); 
+    padding: 3px 6px;
+    border-radius: 5px;
+    flex-shrink: 0; /* Evita que el texto se comprima */
 }
 
 .status-panel-data {
     display: flex;
-    justify-content: space-between; /* Distribución uniforme y compacta */
+    justify-content: space-around;
     align-items: center;
-    flex-wrap: nowrap; /* Asegura que se mantenga en fila */
-    gap: 5px; /* Más compacto */
-    font-size: 0.9rem;
-    font-weight: 800;
-    text-align: center;
-    overflow-x: auto; /* Por si acaso en móvil extremo */
+    gap: 20px;
 }
 
-.status-item {
+.status-data-item {
+    text-align: center;
+}
+
+.status-data-item span:first-child {
+    font-size: 0.85rem;
+    display: block;
+    color: var(--color-texto-secundario);
+}
+
+.status-data-item span:last-child {
+    font-size: 1.3rem;
+    font-weight: 900;
+    display: block;
+}
+
+/* Estilos de edición del panel de estado */
+.status-panel-data input {
+    /* ... (Estilos de input permanecen igual) ... */
+    max-width: 80px;
+    text-align: center;
+    font-size: 1rem;
+    padding: 3px 5px;
+    border: 1px solid var(--acento-rojo);
+    border-radius: 5px;
+}
+
+/* ----------------------------------------------------------------
+   CONTENEDOR DE TARJETAS (CARDS)
+   ---------------------------------------------------------------- */
+.container {
+  max-width: 900px;
+  margin: 10px auto 20px auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+/* ... (El resto de los estilos de cards permanecen iguales) ... */
+.card {
+  /* Glassmorphism base */
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  
+  border-radius: 15px;
+  padding: 15px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 8px var(--sombra-suave);
+  position: relative;
+  overflow: hidden; /* Para contener el panel de tiempo */
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.4s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px var(--sombra-fuerte);
+}
+
+.card-recent {
+    border-left: 5px solid var(--acento-rojo); 
+    box-shadow: 0 0 15px rgba(239, 35, 60, 0.4); 
+}
+
+.card-old {
+    border-left: 5px solid var(--acento-cian); 
+    box-shadow: 0 0 15px rgba(0, 188, 212, 0.4); 
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 5px;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.card span.emoji {
+  font-size: 1.6rem;
+  margin-left: 10px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.card-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-texto-secundario);
+  white-space: pre-wrap;
+}
+
+/* Botón de tiempo */
+.time-btn {
+    align-self: flex-end; 
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+    cursor: pointer;
+    margin-top: 5px;
+    border: none;
+    background: none;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.time-btn:hover {
+    color: var(--acento-rojo);
+}
+
+/* Panel de tiempo deslizable */
+.card-time-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Estilos de glassmorphism para el panel */
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
-    padding: 3px 5px; /* Más compacto */
-    border-radius: 6px;
-    min-width: 95px; /* Ancho mínimo para mantener compacto */
-    flex-shrink: 0; /* No se encoge fácilmente */
+    transform: translateX(100%); /* Oculto a la derecha */
+    transition: transform 0.4s ease-out;
+    border-radius: 15px; /* Para coincidir con la tarjeta */
+    z-index: 5;
+    padding: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
 }
 
-/* Estilos de valores específicos */
-.status-item .value {
+.card-time-panel.show {
+    transform: translateX(0); /* Se muestra */
+}
+
+.card-time-panel p {
+    margin: 5px 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--color-texto-principal);
+}
+
+.card-time-panel span {
+    font-weight: 400;
+    font-size: 0.8rem;
     display: block;
-    font-size: 1rem; /* Más pequeño */
-    font-weight: 900;
-    margin-top: 2px;
+    color: var(--color-texto-secundario);
 }
 
-.status-item.deficit .value {
-    color: var(--acento-rojo); 
+.time-close-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--acento-rojo);
 }
-.status-item.divisa .value {
-    color: #008000; /* Verde para divisas */
+
+/* Colores de fondo para el panel de tiempo según la antigüedad */
+.card-recent .card-time-panel {
+    background: var(--tiempo-panel-rojo);
+}
+
+.card-old .card-time-panel {
+    background: var(--tiempo-panel-cian);
+}
+
+/* ----------------------------------------------------------------
+   CONTROLES DE ADMINISTRACIÓN
+   ---------------------------------------------------------------- */
+.login-controls {
+    text-align: center;
+    margin: 10px auto;
+    max-width: 900px;
+    padding: 0 20px;
+}
+
+#loginForm, #adminControlsPanel {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#loginForm {
+    /* Por defecto se muestra, si hay adminControls, se oculta con JS */
+}
+
+#adminControlsPanel {
+    display: none; /* Oculto por defecto */
+    padding: 10px;
+    border: 1px dashed var(--acento-rojo);
+    border-radius: 10px;
+    background-color: var(--fondo-principal);
+}
+
+.login-controls input {
+    padding: 8px 10px;
+    border: 1px solid var(--color-texto-secundario);
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.login-controls button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+#loginBtn {
+    background-color: var(--color-texto-principal);
+    color: white;
+}
+
+#loginBtn:hover {
+    background-color: #495469;
+}
+
+#saveBtn {
+    background-color: var(--acento-verde);
+    color: white;
+}
+
+#saveBtn:hover {
+    background-color: #12b0a3;
+}
+
+.admin-btn {
+    background-color: var(--acento-cian);
+    color: var(--color-texto-principal);
+}
+
+.admin-btn:hover {
+    background-color: #4ddef1;
+}
+
+#logoutBtn {
+    background-color: var(--acento-rojo);
+    color: white;
+}
+
+#logoutBtn:hover {
+    background-color: #ff5c73;
+}
+
+/* ----------------------------------------------------------------
+   ESTILOS DE EDICIÓN (ADMIN MODE)
+   ---------------------------------------------------------------- */
+.card.editing {
+    border: 2px solid var(--acento-rojo);
+    background-color: #fff0f2;
+    box-shadow: 0 0 20px rgba(239, 35, 60, 0.6);
+}
+
+.card input[type="text"], .card textarea {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 5px;
+    border: 1px solid var(--acento-rojo);
+    border-radius: 3px;
+    font-size: 0.9rem;
+    resize: vertical;
+}
+
+.card textarea {
+    min-height: 50px;
+}
+
+/* Ocultar botones no deseados en modo edición */
+.editing .time-btn {
+    display: none;
+}
+
+
+/* ----------------------------------------------------------------
+   SECCIÓN DE COMENTARIOS (HILOS)
+   ---------------------------------------------------------------- */
+.comments-section {
+    max-width: 900px;
+    margin: 20px auto 40px auto;
+    padding: 20px;
+    border-radius: 15px;
+    background: var(--glass-bg); /* Estilo glassmorphism */
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 8px var(--sombra-suave);
+}
+
+.comments-section h2 {
+    text-align: center;
+    color: var(--acento-rojo);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+
+/* Contenedor principal de comentarios */
+.comments-display-wrap {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px; /* Espacio para el scrollbar */
+}
+
+/* Lista de comentarios */
+.comments-list-container {
+    list-style: none;
+    padding: 0;
+}
+
+.comment-item {
+    border-left: 3px solid var(--acento-rojo);
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    background-color: var(--color-comentario-fondo);
+    box-shadow: 0 1px 3px var(--sombra-suave);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+}
+
+.comment-author {
+    font-weight: 900;
+    margin-right: 10px;
+}
+
+.comment-date {
+    color: var(--color-texto-secundario);
+    font-size: 0.75rem;
+}
+
+.comment-text {
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 5px 0 10px 0;
+    line-height: 1.4;
+}
+
+/* Acciones (Reply, Like) */
+.comment-actions {
+    display: flex;
+    gap: 15px;
+    font-size: 0.8rem;
+}
+
+.comment-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-texto-secundario);
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    padding: 0;
+}
+
+.comment-actions button:hover {
+    color: var(--acento-rojo);
+}
+
+.comment-actions .like-count {
+    margin-left: 5px;
+    font-weight: 700;
+}
+
+.comment-actions button.liked {
+    color: var(--color-like);
+    font-weight: 700;
+}
+
+/* Contenedor de respuestas (Hilos) */
+.replies-container {
+    border-left: 2px solid var(--color-borde-hilo);
+    margin-top: 10px;
+    padding-left: 20px; /* Separación visual para el hilo */
+}
+
+.reply-item {
+    padding: 8px 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    background-color: var(--color-respuesta-fondo);
+    font-size: 0.9rem;
+    border-left: 3px solid var(--acento-cian);
+}
+
+.reply-item .comment-text {
+    font-size: 0.9rem;
+}
+
+/* Formulario de Respuesta */
+.reply-form {
+    background-color: #f0f0ff;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+    border: 1px solid #d4d4f7;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.reply-form input[type="text"], .reply-form textarea {
+    padding: 5px;
+    border: 1px solid #c0c0e0;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    resize: vertical;
+}
+
+.reply-form button {
+    align-self: flex-start;
+    padding: 5px 10px;
+    background-color: var(--acento-cian);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+/* Formulario principal de comentarios */
+.comment-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.comment-form-container input[type="text"], .comment-form-container textarea {
+    padding: 10px;
+    border: 1px solid var(--color-texto-secundario);
+    border-radius: 8px;
     font-size: 1rem;
 }
 
-.status-item .label {
-    font-size: 0.7rem; /* Más pequeño */
-    font-weight: 600;
-    color: #555;
-    margin-bottom: 2px;
+.comment-form-container textarea {
+    resize: vertical;
+    min-height: 80px;
 }
 
-/* Modo Admin: Campos de edición para el panel */
-.status-panel-container.admin-mode {
-    padding: 10px;
-    border: 2px dashed var(--acento-rojo); 
-}
-.status-panel-container.admin-mode .status-panel-data {
-    flex-direction: row; /* ⭐ MANTIENE FILA EN ADMIN MODE ⭐ */
-    flex-wrap: wrap; 
-    gap: 5px;
-}
-.status-panel-container.admin-mode .status-item {
-    width: 31%; /* Divide el espacio en 3 columnas */
-    flex-direction: column; /* Cambiado a columna para que el input sea 100% del item */
-    justify-content: center;
-    background-color: rgba(255, 255, 255, 0.7);
-    padding: 5px;
-    border: 1px solid #ccc;
-}
-.status-panel-container.admin-mode input {
-    border: 1px solid var(--acento-rojo);
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-align: center; /* Centrado en columna */
-    width: 100%; /* Ocupa todo el item */
-    margin-top: 5px;
-}
-.status-panel-container.admin-mode .status-item .label {
-    color: var(--color-texto-principal);
-    font-size: 0.8rem;
-}
-
-
-/* ----------------------------------------------------------------
-   PANCARTA DE NOTICIAS (NEWS TICKER) 
-   ---------------------------------------------------------------- */
-.news-ticker-container {
-    width: 100%;
-    background: linear-gradient(90deg, #d90429 0%, var(--acento-rojo) 100%); 
+#publishCommentBtn {
+    padding: 10px 15px;
+    background-color: var(--acento-verde);
     color: white;
-    box-shadow: 0 2px 5px var(--sombra-fuerte);
-    overflow: hidden; 
-    padding: 5px 0;
-    margin-bottom: 15px; 
-    display: flex; 
-    align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.5); 
-    border-bottom: 1px solid rgba(0, 0, 0, 0.3); 
-    position: sticky;
-    top: 0;
-    z-index: 998; 
-}
-.news-ticker-fixed-label {
-    font-weight: 900; 
-    margin-right: 8px; 
-    padding: 0 7px; 
-    font-size: 0.75rem; 
-    background-color: rgba(0, 0, 0, 0.35); 
-    border-radius: 4px;
-    flex-shrink: 0;
-    line-height: 1.2;
-    z-index: 2; 
-}
-.news-ticker-wrap { overflow: hidden; flex-grow: 1; position: relative; height: 100%; }
-.news-ticker-content { white-space: nowrap; font-size: 0.8rem; display: inline-block; }
-.news-item { padding: 0 20px; display: inline-block; color: #f8f9fa; font-weight: 700; text-shadow: 0 0 2px rgba(0, 0, 0, 0.4); }
-.news-item small { font-weight: 600; opacity: 0.9; margin-left: 5px; font-size: 0.7rem; color: #1a1a1a; background-color: #ffc107; padding: 2px 5px; border-radius: 4px;}
-.news-item a { color: #ffcc00; text-decoration: underline; font-weight: 800; }
-@keyframes ticker-move-static { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
-
-/* ----------------------------------------------------------------
-   LOGIN Y ADMIN CONTROLES 
-   ---------------------------------------------------------------- */
-.login-controls {
-  display: flex; flex-direction: column; align-items: center; gap: 10px; width: 95%; max-width: 550px; 
-  background: var(--glass-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
-  padding: 0.8rem; border-radius: 12px; border: 1px solid var(--glass-border); 
-  box-shadow: 0 4px 12px var(--sombra-fuerte); margin-bottom: 20px; z-index: 10; 
-}
-.login-message { font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; }
-#loginForm { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 5px; width: 100%; }
-#loginForm input { flex-grow: 1; width: 100%; min-width: 70px; }
-.login-controls input { border: 1px solid #ddd; border-radius: 8px; padding: 6px 8px; font-size: 0.8rem; font-family: 'Nunito', sans-serif; }
-.login-controls button {
-  background: #4f46e5; color: white; border: none; border-radius: 8px; padding: 6px 10px; cursor: pointer;
-  font-size: 0.8rem; font-weight: 700; transition: all 0.3s ease; flex-shrink: 0; 
-}
-#adminControlsPanel { display: none; justify-content: center; align-items: center; gap: 8px; padding: 8px; width: 100%; flex-wrap: wrap; background-color: rgba(0, 0, 0, 0.05); border-radius: 8px; overflow-x: hidden; }
-#adminControlsPanel button { font-size: 0.8rem; padding: 7px 10px; }
-#saveBtn { background-color: var(--acento-verde); } 
-#saveBtn:hover { background-color: #0c8075; } 
-
-/* ----------------------------------------------------------------
-   TARJETAS (CARDS)
-   ---------------------------------------------------------------- */
-.container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
-  gap: 10px; 
-  width: 95%;
-  max-width: 800px; 
-  padding: 15px; 
-}
-
-.card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px); 
-  border: 1px solid var(--glass-border);
-  border-radius: 16px; 
-  box-shadow: 0 6px 15px var(--sombra-suave);
-  padding: 8px; 
-  padding-top: 15px; 
-  text-align: center;
-  color: var(--color-texto-principal);
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s, background 0.3s; 
-  min-height: 110px; 
-  display: flex;
-  flex-direction: column;
-  position: relative; 
-  cursor: pointer; 
-  overflow: hidden; 
-}
-
-/* --- ESTILOS DE ESTADO (Web 1) --- */
-.card-recent:not(.admin-mode) {
-    background: rgba(239, 35, 60, 0.1); 
-    box-shadow: 0 0 10px rgba(239, 35, 60, 0.5), 0 6px 15px var(--sombra-suave);
-    border: 1px solid rgba(239, 35, 60, 0.4); 
-}
-.card-old:not(.admin-mode) {
-    background: rgba(0, 188, 212, 0.1); 
-    box-shadow: 0 0 8px rgba(0, 188, 212, 0.4), 0 6px 15px var(--sombra-suave);
-    border: 1px solid rgba(0, 188, 212, 0.3); 
-}
-.card:hover:not(.admin-mode) {
-  transform: translateY(-6px);
-  background: rgba(255, 255, 255, 0.5); 
-  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-}
-.card.show-time-panel {
-    transform: translateY(-6px); 
-    background: rgba(255, 255, 255, 0.5); 
-    box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-}
-
-/* *** LABEL DE RECIENTE COMPACTO (Web 1 REINTRODUCIDO) *** */
-.card-label {
-    position: absolute; 
-    top: -1px; 
-    right: -1px; 
-    font-weight: 900;
-    padding: 2px 6px;
-    border-radius: 0 15px 0 15px; 
-    z-index: 10;
-    font-size: 0.55rem; 
-    line-height: 1;
-    display: none; /* Se muestra con JS solo si es reciente */
-}
-.card-label[style*="acento-cian"] {
-    color: var(--color-texto-principal); 
-    font-weight: 700; 
-}
-
-.card span.emoji { font-size: 1.5rem; display: block; margin-bottom: 3px; }
-.card h3 { margin: 0; font-size: 0.9rem; font-weight: 800; color: #1a1a1a; margin-top: 5px; }
-.card-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-.card-content p { margin: 4px 0 0; font-size: 0.8rem; color: #333; white-space: pre-wrap; text-align: center; }
-
-/* --- CAMPOS DE EDICIÓN EN MODO ADMIN (MEJORADOS) --- */
-.card .editable-content {
-    width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 8px;
-    font-size: 0.85rem; resize: vertical; min-height: 50px; margin-top: 5px;
-    font-family: 'Nunito', sans-serif; box-sizing: border-box;
-}
-.card .editable-title, .card .editable-emoji {
-    border: 1px solid #4f46e5; padding: 4px; border-radius: 4px; 
-    text-align: center; font-weight: 700; margin-bottom: 5px; 
-}
-.card .editable-emoji { width: 1.5rem; height: 1.5rem; font-size: 1.2rem; margin: 0 auto; display: block; }
-.card .editable-title { font-size: 0.85rem; }
-
-/* PANEL DESLIZABLE DE TIEMPO */
-.card-time-panel {
-    position: absolute; bottom: 0; left: 0; width: 100%; padding: 6px 8px; 
-    font-size: 0.7rem; font-weight: 700; color: #1a1a1a; font-family: 'Nunito', sans-serif; 
-    background: white; transition: transform 0.3s ease-out; transform: translateY(100%); 
-    border-radius: 0 0 16px 16px; text-align: center; box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-}
-.card.show-time-panel .card-time-panel { transform: translateY(0); }
-
-
-/* ----------------------------------------------------------------
-   COMENTARIOS Y HILOS (Web 2) - ESTILOS MEJORADOS
-   ---------------------------------------------------------------- */
-.comments-section {
-    width: 95%; max-width: 800px; padding: 20px; margin: 20px 0;
-    background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border); border-radius: 16px; box-shadow: 0 4px 15px var(--sombra-suave);
-}
-.comments-section h2 { font-size: 1.3rem; margin-bottom: 15px; }
-.comments-display-wrap { max-height: 400px; padding: 12px; margin-bottom: 15px; background: rgba(255, 255, 255, 0.85); overflow-y: auto; border-radius: 8px; border: 1px solid var(--color-borde-hilo); }
-
-/* Contenedor del Comentario Principal */
-.comment-item { 
-    border-bottom: 1px dashed #ccc; padding: 12px; margin-bottom: 10px; 
-    background-color: var(--color-comentario-fondo);
+    border: none;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-.comment-item:last-child { border-bottom: none; }
-
-/* Nombre del Comentario Principal */
-.comment-item > strong.comment-name { 
-    font-size: 1rem; 
-    font-weight: 900; 
-    border-bottom: 2px solid #ddd; 
-    padding-bottom: 4px;
-    margin-bottom: 5px;
-    color: var(--comment-color, #333); 
-    display: block; 
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.comment-content { font-size: 0.85rem; color: #333; margin-left: 0; margin-top: 5px; }
-.comment-date { font-size: 0.65rem; color: var(--color-texto-secundario); display: block; text-align: right; }
-.comment-form-container input, .comment-form-container textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Nunito', sans-serif; box-sizing: border-box; }
-#publishCommentBtn { background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background 0.3s; width: 100%; }
-#publishCommentBtn:hover { background: #059669; }
-
-/* Likes y Respuestas */
-.comment-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 5px; font-size: 0.8rem; }
-.like-button { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 2px 5px; line-height: 1; transition: transform 0.1s ease; }
-.like-button:hover { transform: scale(1.1); }
-.like-button .heart { color: #ccc; }
-.like-button.liked .heart { color: var(--acento-rojo); }
-.like-count { font-weight: 700; color: var(--color-texto-principal); }
-.reply-form-toggle { display: inline-block; margin-left: 10px; font-size: 0.75rem; color: var(--acento-verde); cursor: pointer; font-weight: 700; }
-.reply-form { display: none; margin-top: 10px; padding: 10px; background: rgba(240, 240, 240, 0.8); border-radius: 8px; }
-.reply-form input, .reply-form textarea { width: 100%; margin-bottom: 8px; font-size: 0.75rem; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Nunito', sans-serif; box-sizing: border-box; }
-.reply-form button { background: var(--acento-verde); color: white; border: none; padding: 6px 10px; font-size: 0.75rem; width: 100%; border-radius: 6px; cursor: pointer; }
-
-/* REGLAS PARA RESPUESTAS (HILOS) - MEJORA ESTÉTICA */
-.replies-container { 
-    padding-left: 15px; 
-    margin-top: 10px; 
-    border-left: 3px solid var(--color-borde-hilo); 
-}
-.reply-item { 
-    margin-top: 10px; 
-    padding: 8px; 
-    background-color: var(--color-respuesta-fondo); /* Fondo diferente para respuestas */
-    border-radius: 6px;
-    border-top: none; /* Elimina la línea punteada */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.reply-item > span.comment-name { /* Estilo del nombre de la respuesta */
-    font-weight: 800;
-    font-size: 0.9rem;
-    color: var(--comment-color, #444);
-    display: inline;
-}
-.replies-container .reply-item:not(:first-child) { display: none; }
-.replies-container.expanded .reply-item { display: block; }
-
-.reply-toggle { 
-    display: block; 
-    margin: 8px 0; 
-    font-size: 0.75rem; 
-    color: var(--acento-cian); 
-    cursor: pointer; 
-    font-weight: 800; 
-    text-decoration: underline;
+#publishCommentBtn:hover {
+    background-color: #12b0a3;
 }
 
 
-/* FOOTER */
+/* ----------------------------------------------------------------
+   FOOTER
+   ---------------------------------------------------------------- */
 footer {
-    padding: 20px 15px; background: var(--glass-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    border-radius: 16px 16px 0 0; border-top: 1px solid var(--glass-border); margin-top: 25px; 
-    width: 100%; max-width: 800px; text-align: center; font-size: 0.8rem; color: var(--color-texto-principal);
+    text-align: center;
+    padding: 15px 10px;
+    border-top: 1px solid var(--glass-border);
+    background-color: rgba(255, 255, 255, 0.5); /* Fondo semitransparente */
+    color: var(--color-texto-secundario);
+    font-size: 0.8rem;
 }
 
-/* MEDIA QUERIES (Ajustes para móviles) */
+footer p {
+    margin: 5px 0;
+}
+
+
+/* ----------------------------------------------------------------
+   AJUSTES RESPONSIVE
+   ---------------------------------------------------------------- */
+/* Tabletas (800px) */
+@media (max-width: 800px) {
+    .container {
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 10px;
+        padding: 15px;
+    }
+    .card {
+        min-height: 100px;
+        padding: 10px;
+    }
+    .status-panel-data {
+        flex-wrap: wrap; /* Permite que los elementos de estado bajen de línea */
+    }
+}
+
+/* Móviles (600px y menos) */
 @media (max-width: 600px) {
     header h1 { font-size: 1.2rem; }
     .container { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 10px; }
@@ -440,23 +684,20 @@ footer {
     .status-panel-data {
         flex-direction: row; /* MANTIENE EN FILA */
         flex-wrap: nowrap;
-        overflow-x: auto; /* Permite desplazamiento si los 3 no caben */
+        overflow-x: auto;
+        padding-bottom: 5px; /* Espacio para el scroll si no cabe */
+        justify-content: flex-start; /* Alinea al inicio si hay scroll */
     }
-    .status-item {
-        min-width: 90px; /* Ancho fijo para que todos quepan */
+    .status-data-item {
         flex-shrink: 0;
+        margin-right: 15px;
     }
-    .status-panel-container.admin-mode .status-panel-data {
-        flex-direction: row; 
-        flex-wrap: wrap; 
-        gap: 5px;
+    .status-panel-header span:first-child {
+        font-size: 0.9rem;
     }
-    .status-panel-container.admin-mode .status-item {
-        flex-direction: column; 
-        width: 31%; 
+    #lastEditedTime {
+        font-size: 0.65rem; /* Ajuste para móviles */
+        padding: 2px 4px;
     }
-    .status-panel-container.admin-mode input {
-        width: 100%;
-        text-align: center;
-    }
+
 }

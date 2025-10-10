@@ -206,7 +206,7 @@ function createCardHTML(item, index) {
         <div class="card-content">
             <p>${item.contenido}</p>
         </div>
-        <div class="card-time-panel" style="${panelStyle}">
+        <div class="card-time-panel" data-id="${item.id}" style="${panelStyle}">
             <strong>${labelText}</strong> (${timeText})
         </div>
     </div>
@@ -799,17 +799,36 @@ async function handleLikeToggle(event) {
 // --- NUEVAS FUNCIONES PARA CONTADOR DE VISTAS ---
 // ----------------------------------------------------
 
-// 1. Registra una nueva vista en la base de datos
+// Tiempo en milisegundos para considerar una visita "única" (24 horas)
+const UNIQUE_VISIT_DURATION = 24 * 60 * 60 * 1000; 
+const VISIT_KEY = 'lastPageView';
+
+// 1. Registra una nueva vista en la base de datos SOLO si no la registró en las últimas 24h
 async function registerPageView() {
+    
+    // Paso 1: Comprobar localStorage
+    const lastVisitTimestamp = localStorage.getItem(VISIT_KEY);
+    const now = Date.now();
+
+    // Si existe un timestamp y es más reciente que el tiempo límite, salimos (no contamos).
+    if (lastVisitTimestamp && (now - parseInt(lastVisitTimestamp)) < UNIQUE_VISIT_DURATION) {
+        // console.log("Vista ya registrada recientemente. No se cuenta.");
+        return; 
+    }
+
+    // Paso 2: Si es una visita nueva, registramos en Supabase.
     try {
-        // Asume una tabla 'page_views' con una columna 'created_at' (timestampz, default now())
         const { error } = await supabase
             .from('page_views')
             .insert({}) 
             .select(); 
 
         if (error) {
-            console.error("Error al registrar la vista:", error.message);
+            console.error("Error al registrar la vista (Supabase):", error.message);
+        } else {
+            // Paso 3: Guardamos el timestamp de la visita en localStorage
+            localStorage.setItem(VISIT_KEY, now.toString());
+            // console.log("Nueva vista única registrada.");
         }
     } catch (e) {
         console.error("Excepción al registrar la vista:", e);

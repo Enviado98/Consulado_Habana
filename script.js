@@ -863,7 +863,7 @@ async function getAndDisplayViewCount() {
         const formattedCount = count ? count.toLocaleString('es-ES') : '0';
         
         // Formato solicitado: ( 👁 - 12 vistas )
-        viewCounterElement.textContent = `( 👁 - ${formattedCount} vistas )`;
+        viewCounterElement.textContent = `👀 - ${formattedCount} vistas (7 dias)`;
 
     } catch (e) {
         console.error("Excepción al obtener/mostrar el conteo:", e);

@@ -587,6 +587,12 @@ footer {
 .news-btn-v2 .emoji {
     margin-right: 8px;
 }
+/* --- HEADER (Asegúrate que esta regla incluye position: relative;) --- */
+header {
+  /* ... otros estilos ... */
+  position: relative; /* <-- Debe existir para posicionar el contador */
+}
+
 /* ----------------------------------------------------------------
    CONTADOR DE VISITAS (SOLICITADO)
    ---------------------------------------------------------------- */

@@ -795,6 +795,62 @@ async function handleLikeToggle(event) {
     }
 }
 
+// ----------------------------------------------------
+// --- NUEVAS FUNCIONES PARA CONTADOR DE VISTAS ---
+// ----------------------------------------------------
+
+// 1. Registra una nueva vista en la base de datos
+async function registerPageView() {
+    try {
+        // Asume una tabla 'page_views' con una columna 'created_at' (timestampz, default now())
+        const { error } = await supabase
+            .from('page_views')
+            .insert({}) 
+            .select(); 
+
+        if (error) {
+            console.error("Error al registrar la vista:", error.message);
+        }
+    } catch (e) {
+        console.error("Excepción al registrar la vista:", e);
+    }
+}
+
+// 2. Obtiene el conteo de vistas de los últimos 7 días y lo muestra
+async function getAndDisplayViewCount() {
+    const viewCounterElement = document.getElementById('viewCounter');
+    
+    // Si el elemento no existe (p. ej. en otra página), salimos.
+    if (!viewCounterElement) return;
+
+    try {
+        // Calcula la fecha de hace 7 días
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const sevenDaysAgoISO = sevenDaysAgo.toISOString();
+
+        // Consulta Supabase: cuenta los registros 'page_views' después de la fecha
+        const { count, error } = await supabase
+            .from('page_views')
+            .select('*', { count: 'exact', head: true }) 
+            .gt('created_at', sevenDaysAgoISO); 
+
+        if (error) {
+            console.error("Error al obtener el conteo de vistas:", error.message);
+            viewCounterElement.textContent = '( 👁 - Error )';
+            return;
+        }
+
+        const formattedCount = count ? count.toLocaleString('es-ES') : '0';
+        
+        // Formato solicitado: ( 👁 - 12 vistas )
+        viewCounterElement.textContent = `( 👁 - ${formattedCount} vistas )`;
+
+    } catch (e) {
+        console.error("Excepción al obtener/mostrar el conteo:", e);
+        viewCounterElement.textContent = '( 👁 - Error )';
+    }
+}
 
 // ----------------------------------------------------
 // FUNCIONES DE CARGA Y RENDERIZADO DEL PANEL DE ESTADO ⭐ MODIFICADO ⭐
@@ -1051,6 +1107,11 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.publishCommentBtn.addEventListener('click', publishComment); 
     
     updateHeaderTime(); 
+    
+    // NUEVO: Funciones para el contador de vistas
+    registerPageView();
+    getAndDisplayViewCount();
+    
     loadData();
     loadNews();
     loadComments(); 

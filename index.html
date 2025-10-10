@@ -16,51 +16,35 @@
 
 <header>
   <h1>🇪🇸 Calendario de Trámites Consulares 🇨🇺</h1>
-  
-  <div id="viewCounterBox" class="view-counter-box">
-      <span class="view-icon">👁️</span>
-      <span id="viewCount">...</span>
-      <span class="view-text">Visitas en los últimos 7 días</span>
-  </div>
   <p>Información de plazos y fechas aproximadas al <span id="fecha-actualizacion">Cargando...</span></p>
   <div class="header-action-container">
     <a href="news.html" class="news-btn-v2" role="button">🔴 Noticias aquí 👈🏻</a>
 </div>
-</header>
+  </header>
 
 <div id="statusPanel" class="status-panel-container">
     <div class="status-panel-header">
         <span>ESTADO ECONÓMICO Y ENERGÉTICO 🚨</span>
         <span id="lastEditedTime">Última edición: Hace un rato...</span>
+        <div id="weeklyViewsCounter">
+            Vistas 7D: <span id="viewsCount">0</span>
+        </div>
     </div>
     <div id="statusDataContainer" class="status-panel-data">
-        Cargando datos de estado...
+        <p>Cargando información para actualizar la información
     </div>
-</div>
-<div id="newsTicker" class="news-ticker-container" style="display:none;">
-    <strong class="news-ticker-fixed-label">NOTICIAS</strong>
-    <div class="news-ticker-wrap">
-        <div id="newsTickerContent" class="news-ticker-content">
-            </div>
-    </div>
-</div>
+    
+    <button id="toggleAdminBtn" class="primary-admin-btn">🛡️ ACTIVAR EL MODO EDICIÓN </button>
 
-<div class="login-controls">
-  <div id="statusMessage" class="login-message">
-            Accede a modo edición para actualizar la información
-  </div>
-  
-  <button id="toggleAdminBtn" class="primary-admin-btn">🛡️ ACTIVAR EL MODO EDICIÓN </button>
-
-  
-  <div id="adminControlsPanel">
-    <div class="admin-group">
-        <button id="saveBtn" class="admin-btn">💾 Guardar los Cambios</button>
-    </div>
-    <div class="admin-group">
-        <button id="addNewsBtn" class="admin-btn">✅️ Añadir Noticia al Rodillo</button> 
-        <button id="deleteNewsBtn" class="admin-btn">⛔️ Eliminar una Noticia del Rodillo</button> 
-    </div>
+    
+    <div id="adminControlsPanel">
+      <div class="admin-group">
+          <button id="saveBtn" class="admin-btn">💾 Guardar los Cambios</button>
+      </div>
+      <div class="admin-group">
+          <button id="addNewsBtn" class="admin-btn">✅️ Añadir Noticia al Rodillo</button> 
+          <button id="deleteNewsBtn" class="admin-btn">⛔️ Eliminar una Noticia del Rodillo</button> 
+      </div>
     </div>
 </div>
 
@@ -84,8 +68,9 @@
 </section>
 
 <footer>
-  <div>© 2025 Consulado – Información actualizada periódicamente.</div>
+    <p>Sitio experimental y de código abierto. Consulta fuentes oficiales.</p>
 </footer>
+
 
 <script type="module" src="script.js"></script>
 

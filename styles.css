@@ -57,6 +57,7 @@ header {
   background: linear-gradient(135deg, #4f46e5, #9333ea);
   color: white;
   box-shadow: 0 4px 10px var(--sombra-fuerte);
+  position: relative; /* <--- AÑADIDO: NECESARIO para que el contador se posicione en la esquina. */
 }
 header h1 { margin: 0; font-size: 1.3rem; font-weight: 800; }
 header p { margin: 0.3rem 0 0; font-size: 0.8rem; opacity: 0.9; }
@@ -585,4 +586,47 @@ footer {
 /* Si quieres que el texto sea aún más 'minimalista' */
 .news-btn-v2 .emoji {
     margin-right: 8px;
+}
+/* ----------------------------------------------------------------
+   CONTADOR DE VISITAS (SOLICITADO)
+   ---------------------------------------------------------------- */
+
+.view-counter-box {
+    position: absolute;
+    top: 10px; /* Separación del borde superior */
+    right: 10px; /* Posicionado en la esquina derecha */
+    
+    background-color: var(--acento-rojo, #ef233c); /* Fondo rojo */
+    color: white; /* Fuente en blanco */
+    
+    padding: 4px 8px; /* Pequeño padding para el cuadro */
+    border-radius: 6px; /* Bordes redondeados */
+    font-size: 0.75em; /* Fuente pequeña */
+    font-weight: 700;
+    line-height: 1; /* Para que sea compacto */
+    
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Espacio entre los elementos internos */
+    
+    box-shadow: 0 2px 5px var(--sombra-fuerte); /* Sombra para que se vea bonito */
+    white-space: nowrap; 
+    z-index: 10;
+}
+
+.view-counter-box .view-icon {
+    font-size: 1.1em; /* Ojo un poco más grande */
+}
+
+/* Media query para hacerlo más compacto en móvil */
+@media (max-width: 600px) {
+    .view-counter-box {
+        padding: 3px 6px;
+        top: 8px;
+        right: 8px;
+        font-size: 0.65em;
+    }
+    .view-counter-box .view-text {
+        display: none; /* Oculta el texto largo para hacerlo muy pequeño en móvil */
+    }
 }

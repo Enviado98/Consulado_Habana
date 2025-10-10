@@ -31,20 +31,33 @@
         </div>
     </div>
     <div id="statusDataContainer" class="status-panel-data">
-        <p>Cargando información para actualizar la información
+        Cargando datos de estado...
     </div>
-    
-    <button id="toggleAdminBtn" class="primary-admin-btn">🛡️ ACTIVAR EL MODO EDICIÓN </button>
+</div>
+<div id="newsTicker" class="news-ticker-container" style="display:none;">
+    <strong class="news-ticker-fixed-label">NOTICIAS</strong>
+    <div class="news-ticker-wrap">
+        <div id="newsTickerContent" class="news-ticker-content">
+            </div>
+    </div>
+</div>
 
-    
-    <div id="adminControlsPanel">
-      <div class="admin-group">
-          <button id="saveBtn" class="admin-btn">💾 Guardar los Cambios</button>
-      </div>
-      <div class="admin-group">
-          <button id="addNewsBtn" class="admin-btn">✅️ Añadir Noticia al Rodillo</button> 
-          <button id="deleteNewsBtn" class="admin-btn">⛔️ Eliminar una Noticia del Rodillo</button> 
-      </div>
+<div class="login-controls">
+  <div id="statusMessage" class="login-message">
+            Accede a modo edición para actualizar la información
+  </div>
+  
+  <button id="toggleAdminBtn" class="primary-admin-btn">🛡️ ACTIVAR EL MODO EDICIÓN </button>
+
+  
+  <div id="adminControlsPanel">
+    <div class="admin-group">
+        <button id="saveBtn" class="admin-btn">💾 Guardar los Cambios</button>
+    </div>
+    <div class="admin-group">
+        <button id="addNewsBtn" class="admin-btn">✅️ Añadir Noticia al Rodillo</button> 
+        <button id="deleteNewsBtn" class="admin-btn">⛔️ Eliminar una Noticia del Rodillo</button> 
+    </div>
     </div>
 </div>
 
@@ -68,9 +81,8 @@
 </section>
 
 <footer>
-    <p>Sitio experimental y de código abierto. Consulta fuentes oficiales.</p>
+  <div>© 2025 Consulado – Información actualizada periódicamente.</div>
 </footer>
-
 
 <script type="module" src="script.js"></script>
 

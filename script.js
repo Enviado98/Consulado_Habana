@@ -17,554 +17,272 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let admin = false; // Estado global para el modo de edición
 
 // Variables y constantes de tiempo
-const ONE_HOUR = 3600000;
-const ONE_DAY = 24 * ONE_HOUR;
-const TIKKER_UPDATE_INTERVAL = 3000; // 3 segundos
+const ONE_HOUR = 3600000; 
 
-// Referencias a elementos del DOM
+// Selectores de Elementos DOM
 const DOMElements = {
-    contenedor: document.getElementById('contenedor'),
+    // Panel de Estado y Controles
     statusPanel: document.getElementById('statusPanel'),
     statusDataContainer: document.getElementById('statusDataContainer'),
     lastEditedTime: document.getElementById('lastEditedTime'),
+    
+    // Controles de Administración
     toggleAdminBtn: document.getElementById('toggleAdminBtn'),
     adminControlsPanel: document.getElementById('adminControlsPanel'),
     saveBtn: document.getElementById('saveBtn'),
     addNewsBtn: document.getElementById('addNewsBtn'),
     deleteNewsBtn: document.getElementById('deleteNewsBtn'),
+    
+    // Contenido Principal
+    contenedor: document.getElementById('contenedor'), // Contenedor de items (trámites)
+    
+    // Noticias (Rodillo)
+    newsTickerContent: document.getElementById('newsTickerContent'),
+    
+    // Comentarios
+    commentsContainer: document.getElementById('commentsContainer'),
+    publishCommentBtn: document.getElementById('publishCommentBtn'),
     commenterName: document.getElementById('commenterName'),
     commentText: document.getElementById('commentText'),
-    publishCommentBtn: document.getElementById('publishCommentBtn'),
-    commentsContainer: document.getElementById('commentsContainer')
+    
+    // Header
+    fechaActualizacion: document.getElementById('fecha-actualizacion')
 };
 
-// ----------------------------------------------------
-// LÓGICA DE ADMINISTRACIÓN (EDITAR / GUARDAR / LOGIN)
-// ----------------------------------------------------
 
-function setAdminMode(enable) {
-    admin = enable;
-    if (admin) {
-        DOMElements.toggleAdminBtn.textContent = "🔒 SALIR DEL MODO EDICIÓN";
-        DOMElements.toggleAdminBtn.classList.add('admin-active');
-        DOMElements.adminControlsPanel.style.display = 'block';
-        enableEditing();
-    } else {
-        DOMElements.toggleAdminBtn.textContent = "🛡️ ACTIVAR EL MODO EDICIÓN ";
-        DOMElements.toggleAdminBtn.classList.remove('admin-active');
-        DOMElements.adminControlsPanel.style.display = 'none';
-        disableEditing();
-    }
-}
-
-async function toggleAdminMode() {
-    if (admin) {
-        // Salir del modo admin
-        setAdminMode(false);
-    } else {
-        // Pedir credenciales
-        const user = prompt("Ingrese el nombre de usuario (Admin):");
-        const pass = prompt("Ingrese la contraseña (54321):");
-        
-        // Simulación de credenciales
-        const ADMIN_USER = "Admin"; 
-        const ADMIN_PASS = "54321"; 
-
-        if (user === ADMIN_USER && pass === ADMIN_PASS) {
-            alert("Acceso de administrador concedido.");
-            setAdminMode(true);
-        } else {
-            alert("Credenciales incorrectas.");
-        }
-    }
-}
-
-function enableEditing() {
-    document.querySelectorAll('.editable').forEach(el => {
-        el.contentEditable = 'true';
-        el.style.border = '1px dashed red';
-        el.classList.add('editing');
-    });
-}
-
-function disableEditing() {
-    document.querySelectorAll('.editable').forEach(el => {
-        el.contentEditable = 'false';
-        el.style.border = 'none';
-        el.classList.remove('editing');
-    });
-}
-
-async function saveChanges() {
-    if (!admin) return alert("Error: No estás en modo administrador.");
-
-    try {
-        // 1. Guardar la Información de Trámites
-        const newTrameData = Array.from(DOMElements.contenedor.querySelectorAll('.tramite-card')).map(card => {
-            return {
-                titulo: card.querySelector('.editable[data-field="titulo"]').textContent.trim(),
-                fecha: card.querySelector('.editable[data-field="fecha"]').textContent.trim(),
-                periodo: card.querySelector('.editable[data-field="periodo"]').textContent.trim(),
-                color: card.querySelector('.tramite-color').style.backgroundColor || 'var(--acento-cian)' // Usa el color actual o un default
-            };
-        });
-
-        const { error: errorTramites } = await supabase
-            .from('tramites')
-            .upsert(newTrameData, { onConflict: 'titulo' }); // Asume que el título es único
-
-        if (errorTramites) throw errorTramites;
-
-        // 2. Guardar el estado económico
-        const newStatusData = {
-            titulo: DOMElements.statusDataContainer.querySelector('.editable[data-field="status-titulo"]').textContent.trim(),
-            descripcion: DOMElements.statusDataContainer.querySelector('.editable[data-field="status-descripcion"]').textContent.trim(),
-            estado_color: DOMElements.statusDataContainer.querySelector('.status-tag').style.backgroundColor || 'var(--acento-rojo)'
-        };
-
-        const { error: errorStatus } = await supabase
-            .from('status_general')
-            .update(newStatusData)
-            .eq('id', 1); // Asume que solo hay una fila de estado
-
-        if (errorStatus) throw errorStatus;
-
-        // 3. Actualizar la hora de última edición (en la tabla de status)
-        const { error: errorTime } = await supabase
-            .from('status_general')
-            .update({ last_edited: new Date().toISOString() })
-            .eq('id', 1);
-
-        if (errorTime) throw errorTime;
-
-
-        alert("✅ Cambios guardados y publicados correctamente!");
-
-        // Recargar datos y re-habilitar edición
-        await loadData();
-        await loadStatusData();
-        enableEditing();
-
-    } catch (error) {
-        console.error("Error al guardar cambios:", error);
-        alert(`❌ Error al guardar cambios. Por favor, revisa la consola. Detalle: ${error.message}`);
-    }
-}
-
-
-// ----------------------------------------------------
-// LÓGICA DE NOTICIAS EN EL RODILLO (TICKER)
-// ----------------------------------------------------
-
-// Función de renderizado del ticker
-function renderTicker(newsArray) {
-    const tickerContainer = document.getElementById('statusPanel');
-    const tickerBar = document.getElementById('statusDataContainer');
-    
-    // Si no hay noticias, no creamos el ticker (se deja solo el panel de estado)
-    if (!newsArray || newsArray.length === 0) {
-        // Aseguramos que el ticker dinámico esté vacío/oculto
-        document.getElementById('dynamicTickerStyles').textContent = '';
-        tickerBar.style.width = '100%';
-        // Volvemos a cargar el estado general para asegurarnos de que se muestre correctamente
-        loadStatusData();
-        return;
-    }
-    
-    // Crear el contenido del ticker: 🚨 TITULO_ESTADO | NOTICIA 1 | NOTICIA 2 | ... | NOTICIA N | NOTICIA 1 (para loop)
-    const newsContent = newsArray.map(n => 
-        `<span class="ticker-item ${n.urgente ? 'urgente' : ''}">${n.emoji} ${n.texto}</span>`
-    ).join(' ');
-
-    // El contenido del ticker se concatena para asegurar un loop continuo
-    tickerBar.innerHTML = `<span id="statusTickerContent">${newsContent} ${newsContent}</span>`;
-    
-    // 1. Medir el ancho del contenido (oculto temporalmente o en memoria)
-    // Usamos un elemento temporal para medir.
-    const tempEl = document.createElement('div');
-    tempEl.style.position = 'absolute';
-    tempEl.style.whiteSpace = 'nowrap';
-    tempEl.style.fontSize = '1em'; // Debe coincidir con el tamaño de fuente
-    tempEl.style.visibility = 'hidden';
-    tempEl.innerHTML = newsContent; // Solo necesitamos medir un set
-    document.body.appendChild(tempEl);
-    const contentWidth = tempEl.offsetWidth;
-    document.body.removeChild(tempEl);
-
-    const fullTickerContent = document.getElementById('statusTickerContent');
-    const fullContentWidth = fullTickerContent.offsetWidth;
-
-    // 2. Crear las reglas de animación dinámicamente
-    // La animación debe mover el doble del ancho del contenido, ya que se duplica.
-    const animationDuration = Math.max(20, fullContentWidth / 50) * 2; // Duración basada en el ancho para velocidad constante
-    const animationName = 'scrollTicker';
-    
-    const styles = `
-    @keyframes ${animationName} {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-${contentWidth}px); } /* Solo se mueve el ancho del contenido simple */
-    }
-
-    #statusTickerContent {
-        display: inline-block;
-        white-space: nowrap;
-        animation: ${animationName} ${animationDuration}s linear infinite;
-        padding-left: 100%; /* Inicia el contenido fuera del panel */
-    }
-    
-    .ticker-item {
-        padding-right: 25px; 
-    }
-    
-    .ticker-item.urgente {
-        font-weight: 800;
-        color: var(--acento-rojo);
-    }
-    
-    /* Aseguramos que el contenedor de datos sea solo el ancho del panel */
-    .status-panel-data {
-        overflow: hidden;
-        width: 100%;
-        display: block; 
-    }
-    
-    /* Ocultamos el título del estado general cuando hay ticker para no duplicar */
-    .status-panel-data .status-panel-item {
-        display: none !important;
-    }
-    `;
-    
-    // Aplicar los estilos
-    document.getElementById('dynamicTickerStyles').textContent = styles;
-}
-
-
-async function loadNews() {
-    const { data, error } = await supabase
-        .from('news')
-        .select('id, texto, emoji, urgente')
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        console.error("Error al cargar noticias del ticker:", error);
-        return;
-    }
-    
-    renderTicker(data);
-}
-
-// Lógica de administrador para añadir noticias (simple)
-async function addQuickNews() {
-    if (!admin) return alert("Acceso denegado.");
-
-    const texto = prompt("Ingrese el texto de la noticia (máx. 150 caracteres):");
-    if (!texto || texto.trim().length === 0) return;
-
-    const emoji = prompt("Ingrese el emoji para la noticia (ej: ⚠️, ⭐, 📰):") || '📰';
-    const urgente = confirm("¿Es una noticia urgente (S/N)?");
-
-    try {
-        const { error } = await supabase
-            .from('news')
-            .insert({ texto: texto.substring(0, 150), emoji, urgente });
-
-        if (error) throw error;
-
-        alert("✅ Noticia añadida al rodillo con éxito.");
-        await loadNews();
-    } catch (error) {
-        console.error("Error al añadir noticia:", error);
-        alert("❌ Error al añadir noticia.");
-    }
-}
-
-// Lógica de administrador para eliminar noticias
-async function deleteNews() {
-    if (!admin) return alert("Acceso denegado.");
-
-    const { data: newsData, error: fetchError } = await supabase
-        .from('news')
-        .select('id, texto')
-        .order('created_at', { ascending: false });
-
-    if (fetchError) {
-        console.error("Error al obtener noticias para eliminar:", fetchError);
-        return alert("❌ No se pudieron cargar las noticias para eliminar.");
-    }
-
-    if (newsData.length === 0) {
-        return alert("No hay noticias para eliminar.");
-    }
-
-    let newsList = "Seleccione el ID de la noticia a eliminar:\n\n";
-    newsData.forEach(n => {
-        newsList += `ID: ${n.id} - Texto: ${n.texto.substring(0, 50)}...\n`;
-    });
-
-    const idToDelete = prompt(newsList);
-
-    if (!idToDelete) return;
-
-    try {
-        const { error } = await supabase
-            .from('news')
-            .delete()
-            .eq('id', idToDelete);
-
-        if (error) throw error;
-
-        alert(`✅ Noticia con ID ${idToDelete} eliminada.`);
-        await loadNews();
-    } catch (error) {
-        console.error("Error al eliminar noticia:", error);
-        alert("❌ Error al eliminar noticia.");
-    }
-}
-
-// ----------------------------------------------------
-// LÓGICA DE TRÁMITES
-// ----------------------------------------------------
-
-function renderTramites(data) {
-    if (!data || data.length === 0) {
-        DOMElements.contenedor.innerHTML = '<p class="info-message">No se encontraron trámites consulares.</p>';
-        return;
-    }
-
-    // Ordenar los trámites por fecha (aproximada) más reciente
-    data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-
-
-    DOMElements.contenedor.innerHTML = data.map(item => `
-        <div class="tramite-card" data-id="${item.id}">
-            <div class="tramite-color" style="background-color: ${item.color || 'var(--acento-cian)'};"></div>
-            <div class="tramite-content">
-                <h2 class="editable" data-field="titulo">${item.titulo}</h2>
-                <div class="periodo-container">
-                    <span class="label">Periodo:</span> 
-                    <p class="editable" data-field="periodo">${item.periodo}</p>
-                </div>
-                <div class="fecha-container">
-                    <span class="label">Fecha aprox.:</span> 
-                    <time class="editable" data-field="fecha">${item.fecha}</time>
-                </div>
-            </div>
-        </div>
-    `).join('');
-
-    // Si el modo admin está activo, re-habilitar la edición
-    if (admin) {
-        enableEditing();
-    }
-}
-
-async function loadData() {
-    const { data, error } = await supabase
-        .from('tramites')
-        .select('*')
-        .order('id', { ascending: true });
-
-    if (error) {
-        console.error("Error al cargar datos de trámites:", error);
-        DOMElements.contenedor.innerHTML = '<p class="error-message">❌ Error al cargar la información. Intente recargar la página.</p>';
-        return;
-    }
-
-    renderTramites(data);
-}
-
-// ----------------------------------------------------
-// LÓGICA DE COMENTARIOS
-// ----------------------------------------------------
-
-async function publishComment() {
-    const name = DOMElements.commenterName.value.trim();
-    const text = DOMElements.commentText.value.trim();
-
-    if (!name || !text) {
-        alert("Por favor, ingrese su nombre y su comentario.");
-        return;
-    }
-    
-    if (text.length > 250) {
-        alert("El comentario es demasiado largo (máx. 250 caracteres).");
-        return;
-    }
-
-    try {
-        const { error } = await supabase
-            .from('comments')
-            .insert({ 
-                commenter_name: name.substring(0, 30), 
-                comment_text: text, 
-                approved: false // Debe ser aprobado por el admin antes de mostrarse
-            });
-
-        if (error) throw error;
-
-        alert("✅ Comentario enviado. Se publicará una vez sea revisado y aprobado por un administrador.");
-        
-        // Limpiar formulario
-        DOMElements.commenterName.value = '';
-        DOMElements.commentText.value = '';
-        
-        // No recargamos loadComments porque el comentario está pendiente de aprobación.
-
-    } catch (error) {
-        console.error("Error al publicar comentario:", error);
-        alert(`❌ Error al publicar comentario. Detalle: ${error.message}`);
-    }
-}
-
-function renderComments(data) {
-    if (!data || data.length === 0) {
-        DOMElements.commentsContainer.innerHTML = '<p class="info-message">Aún no hay comentarios aprobados.</p>';
-        return;
-    }
-
-    DOMElements.commentsContainer.innerHTML = data.map(item => `
-        <div class="comment-item">
-            <div class="comment-header">
-                <span class="comment-name">👤 ${item.commenter_name}</span>
-                <span class="comment-date">${new Date(item.created_at).toLocaleDateString('es-ES')}</span>
-            </div>
-            <p class="comment-text">${item.comment_text}</p>
-        </div>
-    `).join('');
-}
-
-async function loadComments() {
-    // Solo cargamos los comentarios que han sido aprobados
-    const { data, error } = await supabase
-        .from('comments')
-        .select('commenter_name, comment_text, created_at')
-        .eq('approved', true) // Solo los aprobados
-        .order('created_at', { ascending: false })
-        .limit(10); // Limitar a los 10 más recientes
-
-    if (error) {
-        console.error("Error al cargar comentarios:", error);
-        DOMElements.commentsContainer.innerHTML = '<p class="error-message">❌ Error al cargar los comentarios.</p>';
-        return;
-    }
-    
-    renderComments(data);
-}
-
-// ----------------------------------------------------
-// LÓGICA DE ESTADO GENERAL
-// ----------------------------------------------------
-
-function renderStatus(data) {
-    if (!data || data.length === 0) return;
-
-    const status = data[0]; // Solo esperamos un resultado
-
-    // Actualiza la hora de la última edición
-    if (status.last_edited) {
-        const timeAgo = getTimeAgo(status.last_edited);
-        DOMElements.lastEditedTime.textContent = `Última edición: ${timeAgo}`;
-    }
-
-    // Si hay noticias, el ticker sobrescribe este panel (manejo en loadNews/renderTicker)
-    // Si no hay ticker, mostramos el estado general.
-    if (document.getElementById('dynamicTickerStyles').textContent.length === 0) {
-        DOMElements.statusDataContainer.innerHTML = `
-            <div class="status-panel-item">
-                <h3 class="editable" data-field="status-titulo">${status.titulo || 'Cargando título...'}</h3>
-                <span class="status-tag" style="background-color: ${status.estado_color || 'var(--acento-rojo)'};">
-                    ${status.descripcion || 'Cargando descripción...'}
-                </span>
-            </div>
-        `;
-        // Si el modo admin está activo, re-habilitar la edición
-        if (admin) {
-            enableEditing();
-        }
-    }
-}
-
-async function loadStatusData() {
-    const { data, error } = await supabase
-        .from('status_general')
-        .select('*')
-        .eq('id', 1) // Obtener la única fila
-        .single(); 
-
-    if (error) {
-        console.error("Error al cargar estado general:", error);
-        // Si hay error, no hacemos nada y dejamos el mensaje de carga o error
-        return;
-    }
-    
-    renderStatus([data]); // Enviamos el objeto single como array para la función renderStatus
-}
-
-// ----------------------------------------------------
-// UTILIDADES
-// ----------------------------------------------------
-
-function getTimeAgo(isoDate) {
-    const now = new Date();
-    const past = new Date(isoDate);
-    const diff = now.getTime() - past.getTime();
-
-    if (diff < 60000) return "hace unos segundos";
-    if (diff < ONE_HOUR) return `hace ${Math.floor(diff / 60000)} minutos`;
-    if (diff < ONE_DAY) return `hace ${Math.floor(diff / ONE_HOUR)} horas`;
-    return `el ${past.toLocaleDateString('es-ES')}`;
-}
-
-
-// ----------------------------------------------------
-// LÓGICA DE CONTADOR DE VISITAS (REAL con Supabase)
-// ----------------------------------------------------
+// ==========================================================
+// ⭐ AÑADIDO: LÓGICA DE VISTAS (Supabase) ⭐
+// ==========================================================
 
 /**
- * Registra la visita actual e inmediatamente cuenta las visitas de los últimos 7 días usando Supabase.
- * Para que esto funcione, DEBES crear la tabla 'page_views' en Supabase y sus políticas RLS.
+ * 1. Registra la visita actual en la tabla 'page_views'
  */
-async function updateViewCounter() {
-    const viewCountElement = document.getElementById('viewCount');
-    
-    // 1. REGISTRAR la visita actual (INSERT)
-    // Esto lo hacemos en segundo plano.
-    const { error: insertError } = await supabase
-        .from('page_views')
-        .insert({}); 
+async function recordPageView() {
+    try {
+        const { error } = await supabase
+            .from('page_views')
+            .insert([
+                { timestamp: new Date().toISOString() }
+            ]);
 
-    if (insertError) {
-        console.error("Error al registrar la visita:", insertError);
-        // Continuamos de todas formas
+        if (error) {
+            console.error('Error registrando la visita:', error.message);
+        }
+    } catch (e) {
+        console.error('Excepción al intentar registrar la visita:', e);
     }
+}
 
-    // 2. CONTAR las visitas de los últimos 7 días (SELECT COUNT)
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    
-    const { count, error: countError } = await supabase
-        .from('page_views')
-        .select('*', { count: 'exact', head: true }) 
-        .gt('created_at', sevenDaysAgo); // Filtra por las que son MÁS RECIENTES (gt) que hace 7 días
+/**
+ * 2. Obtiene el número de vistas en los últimos 7 días.
+ */
+async function fetchWeeklyViews() {
+    // Calcula la fecha de hace 7 días
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoISO = sevenDaysAgo.toISOString();
 
-    if (countError) {
-        console.error("Error al contar las vistas:", countError);
-        viewCountElement.textContent = 'ERROR';
-        return;
+    try {
+        // Contamos las filas donde el timestamp es mayor o igual a hace 7 días
+        const { count, error } = await supabase
+            .from('page_views')
+            .select('*', { count: 'exact', head: true }) 
+            .gte('timestamp', sevenDaysAgoISO); 
+
+        if (error) {
+            console.error('Error obteniendo vistas semanales:', error.message);
+            return 0;
+        }
+        // Devuelve el conteo, o 0 si es nulo
+        return count || 0;
+
+    } catch (e) {
+        console.error('Excepción al obtener vistas semanales:', e);
+        return 0;
     }
-    
-    // 3. ACTUALIZAR el DOM con el conteo real
-    const formattedViews = new Intl.NumberFormat('es-ES').format(count);
-    
-    if (viewCountElement) {
-        viewCountElement.textContent = formattedViews;
+}
+
+/**
+ * 3. Actualiza el contador en el DOM
+ */
+async function updateViewsCounter() {
+    const viewsCount = await fetchWeeklyViews();
+    const counterElement = document.getElementById('viewsCount');
+    if (counterElement) {
+        counterElement.textContent = viewsCount;
     }
 }
 
 
+// ==========================================================
+// ⭐ FIN AÑADIDO: LÓGICA DE VISTAS ⭐
+// ==========================================================
+
+
 // ----------------------------------------------------
-// FUNCIÓN DE FORMATO DE TIEMPO
+// FUNCIONES DE CARGA DE DATOS PRINCIPALES
 // ----------------------------------------------------
 
+// Carga el estado principal
+async function loadStatusData() {
+    const { data, error } = await supabase
+        .from('status')
+        .select('content, last_edited')
+        .eq('id', 1)
+        .single();
+    
+    if (error) {
+        console.error("Error al cargar status:", error);
+        DOMElements.statusDataContainer.innerHTML = '<p>Error cargando el estado.</p>';
+    } else if (data) {
+        DOMElements.statusDataContainer.innerHTML = data.content;
+        updateLastEditedTime(data.last_edited);
+    }
+}
+
+// Carga todos los items (trámites)
+async function loadData() {
+    const { data, error } = await supabase
+        .from('items')
+        .select('*')
+        .order('order', { ascending: true }); 
+
+    if (error) {
+        console.error("Error al cargar items:", error);
+        DOMElements.contenedor.innerHTML = '<p>Error cargando trámites.</p>';
+        return;
+    }
+
+    renderItems(data);
+}
+
+// Carga las noticias del rodillo
+async function loadNews() {
+    const { data, error } = await supabase
+        .from('news_ticker')
+        .select('*')
+        .order('id', { ascending: false });
+
+    const newsTicker = document.getElementById('newsTicker');
+    
+    if (error || !data || data.length === 0) {
+        if (newsTicker) newsTicker.style.display = 'none';
+        return;
+    }
+
+    if (newsTicker) newsTicker.style.display = 'flex'; 
+
+    const newsItems = data.map(item => 
+        `<span class="news-item" data-id="${item.id}">${item.content}</span>`
+    ).join('<span class="news-item-sep">|</span>');
+    
+    // Duplicar el contenido para un desplazamiento infinito
+    DOMElements.newsTickerContent.innerHTML = newsItems + '<span class="news-item-sep">|</span>' + newsItems;
+}
+
+// Carga los comentarios
+async function loadComments() {
+    const { data: comments, error } = await supabase
+        .from('comments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        DOMElements.commentsContainer.innerHTML = '<p style="text-align: center; color: var(--acento-rojo);">Error cargando comentarios.</p>';
+        return;
+    }
+
+    if (comments.length === 0) {
+        DOMElements.commentsContainer.innerHTML = '<p style="text-align: center; color: var(--color-texto-secundario); margin: 15px;">Aún no hay comentarios. Sé el primero en publicar.</p>';
+        return;
+    }
+
+    DOMElements.commentsContainer.innerHTML = comments.map(comment => {
+        const date = new Date(comment.created_at).toLocaleDateString('es-ES', { 
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+        });
+        return `
+            <div class="comment-item">
+                <div class="comment-meta">
+                    <strong>${comment.name || 'Anónimo'}</strong> 
+                    <span>${date}</span>
+                </div>
+                <p class="comment-content">${comment.content}</p>
+            </div>
+        `;
+    }).join('');
+}
+
+
+// ----------------------------------------------------
+// FUNCIONES DE RENDERIZADO Y UTILIDAD
+// ----------------------------------------------------
+
+// Renderiza los items en el contenedor
+function renderItems(items) {
+    DOMElements.contenedor.innerHTML = items.map(item => {
+        const statusClass = `status-${item.status.toLowerCase().replace(/\s/g, '-')}`;
+        
+        let contentHtml;
+        let titleHtml;
+        let statusHtml;
+
+        if (admin) {
+            // Modo Edición
+            titleHtml = `<input type="text" id="title-${item.id}" value="${item.title}" class="item-editable-title" />`;
+            contentHtml = `<div id="content-${item.id}" contenteditable="true" class="item-editable-content">${item.content}</div>`;
+            statusHtml = `<select id="status-${item.id}" class="item-editable-status ${statusClass}">
+                            <option value="Urgente" ${item.status === 'Urgente' ? 'selected' : ''}>Urgente</option>
+                            <option value="Pendiente" ${item.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="En trámite" ${item.status === 'En trámite' ? 'selected' : ''}>En trámite</option>
+                        </select>`;
+        } else {
+            // Modo Normal
+            titleHtml = `<h2 class="item-title">${item.title}</h2>`;
+            contentHtml = `<div class="item-details">${item.content}</div>`;
+            statusHtml = `<span class="item-status ${statusClass}">${item.status}</span>`;
+        }
+
+        return `
+            <div class="item-container" data-id="${item.id}">
+                <div class="item-header">
+                    ${titleHtml}
+                    ${statusHtml}
+                </div>
+                ${contentHtml}
+            </div>
+        `;
+    }).join('');
+}
+
+// Actualiza el texto de "Última Edición"
+function updateLastEditedTime(timestamp) {
+    if (!timestamp) return;
+
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.round(diffMs / (1000 * 60));
+
+    let timeString;
+    if (diffMinutes < 5) {
+        timeString = 'Hace un momento';
+    } else if (diffMinutes < 60) {
+        timeString = `Hace ${diffMinutes} minutos`;
+    } else if (diffHours < 24) {
+        timeString = `Hace ${diffHours} horas`;
+    } else {
+        const formattedDate = date.toLocaleDateString('es-ES', { 
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+        });
+        timeString = formattedDate;
+    }
+    
+    DOMElements.lastEditedTime.textContent = timeString;
+}
+
+// Actualiza la hora del header
 function updateHeaderTime() {
     const options = {
         timeZone: 'America/Havana', 
@@ -573,7 +291,160 @@ function updateHeaderTime() {
     };
     const formattedDate = new Intl.DateTimeFormat('es-ES', options).format(new Date());
 
-    document.getElementById('fecha-actualizacion').textContent = `${formattedDate} (CUBA)`;
+    DOMElements.fechaActualizacion.textContent = `${formattedDate} (CUBA)`;
+}
+
+
+// ----------------------------------------------------
+// FUNCIONES DE ACCIÓN (ADMIN Y COMENTARIOS)
+// ----------------------------------------------------
+
+// Alternar Modo Admin
+function toggleAdminMode() {
+    admin = !admin;
+    document.body.classList.toggle('edit-mode', admin);
+    
+    if (admin) {
+        DOMElements.toggleAdminBtn.textContent = '🔒 DESACTIVAR EL MODO EDICIÓN';
+        DOMElements.adminControlsPanel.style.display = 'flex';
+        DOMElements.statusDataContainer.setAttribute('contenteditable', 'true');
+        DOMElements.statusDataContainer.classList.add('editable-content');
+        
+    } else {
+        DOMElements.toggleAdminBtn.textContent = '🛡️ ACTIVAR EL MODO EDICIÓN';
+        DOMElements.adminControlsPanel.style.display = 'none';
+        DOMElements.statusDataContainer.setAttribute('contenteditable', 'false');
+        DOMElements.statusDataContainer.classList.remove('editable-content');
+    }
+    
+    loadData(); // Recarga los items para aplicar el modo edición/visualización
+}
+
+// Guardar Cambios (Status y Items)
+async function saveChanges() {
+    const items = await supabase.from('items').select('*').order('order', { ascending: true });
+    
+    // 1. Guardar el estado
+    const statusText = DOMElements.statusDataContainer.innerHTML.trim();
+    const { error: statusError } = await supabase
+        .from('status')
+        .update({ content: statusText, last_edited: new Date().toISOString() })
+        .eq('id', 1);
+
+    if (statusError) {
+        alert('Error al guardar el estado: ' + statusError.message);
+        return;
+    }
+
+    // 2. Guardar los items
+    const updatePromises = items.data.map(item => {
+        const titleElement = document.getElementById(`title-${item.id}`);
+        const statusElement = document.getElementById(`status-${item.id}`);
+        const contentElement = document.getElementById(`content-${item.id}`);
+
+        return supabase
+            .from('items')
+            .update({ 
+                title: titleElement.value.trim(), 
+                status: statusElement.value, 
+                content: contentElement.innerHTML.trim() 
+            })
+            .eq('id', item.id);
+    });
+
+    const results = await Promise.all(updatePromises);
+    const itemError = results.find(res => res.error);
+
+    if (itemError) {
+        alert('Error al guardar algunos ítems: ' + itemError.error.message);
+    } else {
+        alert('✅ Cambios guardados con éxito!');
+        loadStatusData();
+        loadData();
+    }
+}
+
+// Añadir Noticia (Rodillo)
+async function addQuickNews() {
+    const newContent = prompt('Introduce la nueva noticia para el rodillo:');
+    if (newContent && newContent.trim()) {
+        const { error } = await supabase
+            .from('news_ticker')
+            .insert([{ content: newContent.trim() }]);
+
+        if (error) {
+            alert('Error al añadir la noticia: ' + error.message);
+        } else {
+            alert('Noticia añadida con éxito.');
+            loadNews(); 
+        }
+    }
+}
+
+// Eliminar Noticia (Rodillo)
+async function deleteNews() {
+    const { data: news, error } = await supabase
+        .from('news_ticker')
+        .select('*')
+        .order('id', { ascending: false });
+
+    if (error || news.length === 0) {
+        alert('Error cargando o no hay noticias para eliminar.');
+        return;
+    }
+
+    const list = news.map(n => `ID: ${n.id} - "${n.content}"`).join('\n');
+    const idToDelete = prompt('Noticias actuales:\n' + list + '\n\nIntroduce el ID de la noticia que deseas eliminar:');
+    
+    const id = parseInt(idToDelete, 10);
+    if (!id || isNaN(id)) {
+        if (idToDelete) alert('ID inválido.');
+        return;
+    }
+
+    const { error: deleteError } = await supabase
+        .from('news_ticker')
+        .delete()
+        .eq('id', id);
+
+    if (deleteError) {
+        alert('Error al eliminar la noticia: ' + deleteError.message);
+    } else {
+        alert('Noticia eliminada con éxito.');
+        loadNews(); 
+    }
+}
+
+// Publicar Comentario
+async function publishComment() {
+    const name = DOMElements.commenterName.value.trim();
+    const content = DOMElements.commentText.value.trim();
+
+    if (!content) {
+        alert('Por favor, escribe un comentario.');
+        return;
+    }
+
+    DOMElements.publishCommentBtn.disabled = true;
+    DOMElements.publishCommentBtn.textContent = 'Publicando...';
+
+    const { error } = await supabase
+        .from('comments')
+        .insert([
+            { name: name || null, content: content }
+        ]);
+
+    DOMElements.publishCommentBtn.disabled = false;
+    DOMElements.publishCommentBtn.textContent = 'Publicar Comentario';
+
+    if (error) {
+        alert('Error al publicar comentario: ' + error.message);
+    } else {
+        alert('Comentario publicado con éxito!');
+        DOMElements.commenterName.value = '';
+        DOMElements.commentText.value = '';
+        loadComments(); 
+    }
 }
 
 
@@ -583,38 +454,32 @@ function updateHeaderTime() {
 
 document.addEventListener('DOMContentLoaded', () => {
     
+    // ⭐ AÑADIDO: Llama a las funciones de vistas al cargar la página
+    recordPageView();
+    updateViewsCounter();
+
     // MODIFICADO: Sustitución de loginBtn/logoutBtn por toggleAdminBtn
     DOMElements.toggleAdminBtn.addEventListener('click', toggleAdminMode);
     
+    // Otros Listeners
     DOMElements.saveBtn.addEventListener('click', saveChanges);
     DOMElements.addNewsBtn.addEventListener('click', addQuickNews);
     DOMElements.deleteNewsBtn.addEventListener('click', deleteNews);
     DOMElements.publishCommentBtn.addEventListener('click', publishComment); 
     
     updateHeaderTime(); 
-    updateViewCounter(); // LLAMADA A LA NUEVA FUNCIÓN DEL CONTADOR
     loadData();
     loadNews();
     loadComments(); 
     loadStatusData(); 
     
-    // Actualizar la hora en la cabecera cada minuto
-    setInterval(updateHeaderTime, 60000); 
-
-    // Ajustes responsive para el rodillo si aplica
+    // Intervalos de actualización
+    setInterval(updateHeaderTime, 1000); 
+    setInterval(() => { loadStatusData(); loadData(); loadComments(); }, 300000); // Recargar datos principales cada 5 mins
+    setInterval(updateViewsCounter, 60000); // Recargar el contador de vistas cada 60 segundos
+    
     window.addEventListener('resize', () => {
         if (window.resizeTimer) clearTimeout(window.resizeTimer);
-        window.resizeTimer = setTimeout(() => {
-            // Se debe volver a cargar el ticker para recalcular su ancho y velocidad si cambia el tamaño
-            loadNews();
-        }, 300);
+        window.resizeTimer = setTimeout(loadData, 50); // Ajustar renderizado de items al cambiar tamaño
     });
-
-    // Cargar los datos periódicamente (cada 5 minutos)
-    setInterval(() => {
-        loadData();
-        loadNews();
-        loadComments();
-        loadStatusData();
-    }, 300000); 
 });

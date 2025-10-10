@@ -843,9 +843,9 @@ async function getAndDisplayViewCount() {
     if (!viewCounterElement) return;
 
     try {
-        // Calcula la fecha de hace 7 días
+        // Calcula la fecha de hace 1 día
         const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 1);
         const sevenDaysAgoISO = sevenDaysAgo.toISOString();
 
         // Consulta Supabase: cuenta los registros 'page_views' después de la fecha
@@ -863,7 +863,7 @@ async function getAndDisplayViewCount() {
         const formattedCount = count ? count.toLocaleString('es-ES') : '0';
         
         // Formato solicitado: ( 👁 - 12 vistas )
-        viewCounterElement.textContent = `👀 - ${formattedCount} vistas`;
+        viewCounterElement.textContent = `👀 - ${formattedCount} vistas (24h)`;
 
     } catch (e) {
         console.error("Excepción al obtener/mostrar el conteo:", e);

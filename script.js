@@ -426,7 +426,7 @@ async function loadNews() {
 
     
     } else {
-        const avisoText = '⚠️Sin noticias en estos momentos. 🛡 Activa el modo edición para publicar una Noticia aquí';
+        const avisoText = 'Sin Noticias en estos momentos.... ||  🛡 Activa el modo edición para publicar una Noticia aquí';
         const repeatedAviso = `<span class="news-item">${avisoText}</span><span class="news-item"> | </span><span class="news-item">${avisoText}</span>`;
         
         DOMElements.newsTicker.style.display = 'flex'; 

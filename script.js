@@ -446,7 +446,7 @@ async function loadNews() {
 
 async function addQuickNews() {
     if (!admin) { alert("Acceso denegado."); return; }
-    const newsText = window.prompt("Escribe el mensaje de última hora...");
+    const newsText = window.prompt("Escribe tu noticia aqui para agregarla al rodillo...");
     if (newsText === null || newsText.trim() === "") return;
     
     const confirmSave = confirm(`¿Confirmas que deseas publicar: \n\n"${newsText.trim()}"\n\n(Se borrará automáticamente en 24 horas)`);

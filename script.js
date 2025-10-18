@@ -115,7 +115,7 @@ function updateAdminUI(isAdmin) {
         DOMElements.body.classList.add('admin-mode');
         // DOMElements.loginForm.style.display = "none"; // Eliminado
         DOMElements.adminControlsPanel.style.display = "flex";
-        DOMElements.statusMessage.textContent = "✅ Modo de Edición Activado. ¡No olvides guardar!";
+        DOMElements.statusMessage.textContent = "✅ Modo de Edición Activado. ¡🔴 POR FAVOR EDITA CON RESPONSABILIDAD!";
         DOMElements.statusMessage.style.color = "#0d9488"; 
         DOMElements.toggleAdminBtn.textContent = "🛑 SALIR DEL MODO EDICIÓN"; // Nuevo texto
         DOMElements.toggleAdminBtn.style.backgroundColor = "var(--acento-rojo)"; // Nuevo color

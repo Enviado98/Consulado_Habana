@@ -188,7 +188,7 @@ function createCardHTML(item, index) {
             labelText = ''; 
         } else if (diff >= OLD_THRESHOLD_MS) {
             cardClass = 'card-old';
-            labelHTML = '<div class="card-label" style="background-color: var(--acento-cian); color: var(--color-texto-principal); display: block;">Editado hace un tiempo</div>';
+            labelHTML = '<div class="card-label" style="background-color: var(--acento-cian); color: var(--color-texto-principal); display: block;">Editado hace tiempo</div>';
             panelStyle = `background: var(--tiempo-panel-cian); color: var(--acento-cian);`;
             labelText = '';
         } else {

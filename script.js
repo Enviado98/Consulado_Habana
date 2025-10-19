@@ -146,9 +146,9 @@ function updateAdminUI(isAdmin) {
 function toggleAdminMode() {
     if (!admin) {
         updateAdminUI(true);
-        alert("✅ Modo de Edición Activado. ¡🔴 POR FAVOR EDITA CON RESPONSABILIDAD!");
+        alert("¡🔴 POR FAVOR EDITA CON RESPONSABILIDAD!");
     } else {
-        if (!confirm("⚠️ ¿Estás seguro de que quieres salir del Modo Edición?")) {
+        if (!confirm("✅️ ¿Terminar la edición?")) {
             return;
         }
         updateAdminUI(false);

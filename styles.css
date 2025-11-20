@@ -607,4 +607,16 @@ header {
     border-radius: 3px;
     background-color: rgba(0, 0, 0, 0.4); /* Un fondo sutil para contraste */
     white-space: nowrap; /* Evita que el texto se rompa */
-}
+                    }
+
+/* --- AGREGAR ESTO AL FINAL DE styles.css O EN LA SECCIÓN DEL PANEL DE ESTADO --- */
+
+/* Estilo para inputs deshabilitados (Automáticos por API) */
+.status-panel-container.admin-mode input:disabled {
+    background-color: #e9ecef; /* Fondo gris */
+    color: #6c757d; /* Texto gris oscuro */
+    border-color: #ced4da;
+    cursor: not-allowed; /* Icono de prohibido */
+    font-style: italic;
+    opacity: 0.8;
+                  }

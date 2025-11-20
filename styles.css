@@ -377,18 +377,45 @@ header p { margin: 0.3rem 0 0; font-size: 0.8rem; opacity: 0.9; }
 .card-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
 .card-content p { margin: 4px 0 0; font-size: 0.8rem; color: #333; white-space: pre-wrap; text-align: center; }
 
-/* --- CAMPOS DE EDICIÓN EN MODO ADMIN (MEJORADOS) --- */
+/* --- CAMPOS DE EDICIÓN EN MODO ADMIN (MODIFICADO: BORDES ROJOS Y DISCONTINUOS) --- */
 .card .editable-content {
-    width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 8px;
-    font-size: 0.85rem; resize: vertical; min-height: 50px; margin-top: 5px;
-    font-family: 'Nunito', sans-serif; box-sizing: border-box;
+    width: 100%; 
+    border: 2px dashed var(--acento-rojo); /* Borde rojo discontinuo y grueso */
+    border-radius: 8px; 
+    padding: 10px; 
+    font-size: 0.95rem; 
+    resize: vertical; 
+    min-height: 115px; 
+    margin-top: 5px;
+    font-family: 'Nunito', sans-serif; 
+    box-sizing: border-box;
+    background-color: #fff;
+    line-height: 1.3;
 }
+
 .card .editable-title, .card .editable-emoji {
-    border: 1px solid #4f46e5; padding: 4px; border-radius: 4px; 
-    text-align: center; font-weight: 700; margin-bottom: 5px; 
+    border: 2px dashed var(--acento-rojo); /* Borde rojo discontinuo y grueso */
+    padding: 5px; 
+    border-radius: 4px; 
+    text-align: center; 
+    font-weight: 700; 
+    margin-bottom: 8px;
+    background-color: #fff;
 }
-.card .editable-emoji { width: 1.5rem; height: 1.5rem; font-size: 1.2rem; margin: 0 auto; display: block; }
-.card .editable-title { font-size: 0.85rem; }
+
+.card .editable-emoji { 
+    width: 50%; /* Mucho más ancha para facilitar el clic */
+    height: 3rem; 
+    font-size: 2rem; 
+    margin: 0 auto 5px; 
+    display: block; 
+}
+
+.card .editable-title { 
+    font-size: 0.8rem; /* Fuente más pequeña para que quepa más texto */
+    width: 100%; 
+    padding: 8px; 
+}
 
 /* PANEL DESLIZABLE DE TIEMPO */
 .card-time-panel {
@@ -617,4 +644,4 @@ header {
     border-radius: 3px;
     background-color: rgba(0, 0, 0, 0.4); /* Un fondo sutil para contraste */
     white-space: nowrap; /* Evita que el texto se rompa */
-                    }
+   }

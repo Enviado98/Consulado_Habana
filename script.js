@@ -34,6 +34,7 @@ let currentStatus = {
     deficit_mw: 'Cargando...', 
     dollar_cup: '...', 
     euro_cup: '...',
+    mlc_cup: '...', // ✅ NUEVO: Inicializamos MLC
     deficit_edited_at: null,
     divisa_edited_at: null // Importante para el caché
 }; 
@@ -91,7 +92,7 @@ function timeAgo(timestamp) {
 }
 
 // ----------------------------------------------------
-// 💰 LÓGICA API ELTOQUE CON CACHÉ INTELIGENTE
+// 💰 LÓGICA API ELTOQUE CON CACHÉ INTELIGENTE Y MLC
 // ----------------------------------------------------
 
 async function fetchElToqueRates() {
@@ -102,11 +103,8 @@ async function fetchElToqueRates() {
         
         // Si el dato tiene menos de 10 minutos, NO llamamos a la API.
         if ((now - lastUpdate) < CACHE_DURATION) {
-            // console.log("☕ Dato fresco de BD. Ahorrando llamada a API.");
             return; 
         }
-
-        // console.log("🔄 Dato viejo (>10min). Llamando a elTOQUE...");
 
         // 2. Si es viejo, llamamos a la API
         const proxyUrl = "https://corsproxy.io/?"; 
@@ -126,20 +124,26 @@ async function fetchElToqueRates() {
         
         let usdPrice = '---';
         let eurPrice = '---';
+        let mlcPrice = '---'; // ✅ Variable MLC
 
         if (data.tasas) {
             usdPrice = data.tasas.USD || '---';
-            eurPrice = data.tasas.EUR || data.tasas.ECU || '---'; 
+            eurPrice = data.tasas.EUR || data.tasas.ECU || '---';
+            mlcPrice = data.tasas.MLC || '---'; // ✅ Capturamos MLC
         } else if (data.USD) {
              usdPrice = data.USD;
              eurPrice = data.EUR || data.ECU;
+             mlcPrice = data.MLC; // ✅ Capturamos MLC
         }
 
+        // Formatear a entero
         usdPrice = parseFloat(usdPrice).toFixed(0);
         eurPrice = parseFloat(eurPrice).toFixed(0);
+        mlcPrice = parseFloat(mlcPrice).toFixed(0); // ✅ Formatear MLC
 
         if (isNaN(usdPrice)) usdPrice = '---';
         if (isNaN(eurPrice)) eurPrice = '---';
+        if (isNaN(mlcPrice)) mlcPrice = '---';
 
         // 3. GUARDAR EN BASE DE DATOS (Aquí ocurre la magia)
         // Si obtuvimos datos válidos, actualizamos Supabase para todos los demás
@@ -149,22 +153,23 @@ async function fetchElToqueRates() {
             // Actualizamos el objeto local inmediatamente para que se vea rápido
             currentStatus.dollar_cup = usdPrice;
             currentStatus.euro_cup = eurPrice;
+            currentStatus.mlc_cup = mlcPrice; // ✅ Actualizar local
             currentStatus.divisa_edited_at = newTime;
             
             renderStatusPanel(currentStatus, admin);
 
-            // Enviamos el dato nuevo a la nube
+            // Enviamos el dato nuevo a la nube (INCLUYENDO MLC)
             const { error } = await supabase
                 .from('status_data')
                 .update({ 
                     dollar_cup: usdPrice, 
                     euro_cup: eurPrice,
+                    mlc_cup: mlcPrice, // ✅ Guardar en DB
                     divisa_edited_at: newTime
                 })
                 .eq('id', 1);
 
             if (error) console.error("⚠️ Error al guardar caché en DB:", error.message);
-            // else console.log("✅ Precio actualizado en la Nube para todos.");
         }
 
     } catch (error) {
@@ -601,18 +606,20 @@ function renderStatusPanel(status, isAdminMode) {
     }
 
     if (isAdminMode) {
-        // MODO ADMIN: Inputs para editar déficit, divisas deshabilitadas
+        // MODO ADMIN: Inputs para editar déficit, divisas deshabilitadas (INCLUYE MLC)
         DOMElements.statusDataContainer.innerHTML = `
             <div class="status-item"><span class="label">Deficit (MW):</span><input type="text" id="editDeficit" value="${status.deficit_mw || ''}"></div>
-            <div class="status-item"><span class="label">Dollar (Auto):</span><input type="text" value="${status.dollar_cup}" disabled style="background:#e9ecef; color:#666;"></div>
-            <div class="status-item"><span class="label">Euro (Auto):</span><input type="text" value="${status.euro_cup}" disabled style="background:#e9ecef; color:#666;"></div>
+            <div class="status-item"><span class="label">USD (Auto):</span><input type="text" value="${status.dollar_cup}" disabled style="background:#e9ecef; color:#666;"></div>
+            <div class="status-item"><span class="label">EUR (Auto):</span><input type="text" value="${status.euro_cup}" disabled style="background:#e9ecef; color:#666;"></div>
+            <div class="status-item"><span class="label">MLC (Auto):</span><input type="text" value="${status.mlc_cup}" disabled style="background:#e9ecef; color:#666;"></div>
         `;
     } else {
-        // MODO PÚBLICO
+        // MODO PÚBLICO: Visualización normal (INCLUYE MLC)
         DOMElements.statusDataContainer.innerHTML = `
             <div class="status-item deficit"><span class="label">🔌 Déficit:</span><span class="value">${status.deficit_mw || '---'}</span></div>
             <div class="status-item divisa"><span class="label">💵 USD:</span><span class="value">${status.dollar_cup || '---'}</span></div>
             <div class="status-item divisa"><span class="label">💶 EUR:</span><span class="value">${status.euro_cup || '---'}</span></div>
+            <div class="status-item divisa"><span class="label">💳 MLC:</span><span class="value">${status.mlc_cup || '---'}</span></div>
         `;
     }
 }
@@ -686,4 +693,4 @@ async function loadData() {
         DOMElements.contenedor.innerHTML = data.map((item, i) => createCardHTML(item, i)).join('');
         document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
     }
-}
+                                                                                                                                                    }

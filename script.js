@@ -476,7 +476,7 @@ async function getAndDisplayViewCount() {
     const el = document.getElementById('viewCounter'); if (!el) return;
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
     const { count } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gt('created_at', yesterday.toISOString());
-    el.textContent = `👀 ${count ? count.toLocaleString('es-ES') : '0'} VISTAS (24H)`;
+    el.textContent = `👀 ${count ? count.toLocaleString('es-ES') : '0'} `;
 }
 function renderStatusPanel(status, isAdminMode) {
     if (isAdminMode) {

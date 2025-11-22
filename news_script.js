@@ -1,4 +1,4 @@
-// news_script.js - VERSIÓN ULTRA OPTIMIZADA
+// news_script.js - LÓGICA ANTIGUA (COMPATIBLE) CON DISEÑO NUEVO (NEÓN)
 // ----------------------------------------------------------------
 const SUPABASE_URL = "https://ekkaagqovdmcdexrjosh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVra2FhZ3FvdmRtY2RleHJqb3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4NjU2NTEsImV4cCI6MjA3NTQ0MTY1MX0.mmVl7C0Hkzrjoks7snvHWMYk-ksSXkUWzVexhtkozRA";
@@ -6,12 +6,25 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ----------------------------------------------------
+// 🎨 PALETA DE COLORES NEÓN (Para el diseño nuevo)
+// ----------------------------------------------------
+const NEON_PALETTE = [
+    '#00ffff', '#ff00ff', '#00ff00', '#ffff00', '#ff0099', 
+    '#9D00FF', '#FF4D00', '#00E5FF', '#76ff03', '#ff1744'
+];
+
+function getBannerColor(id) {
+    let hash = 0;
+    const str = String(id);
+    for (let i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+    return NEON_PALETTE[Math.abs(hash) % NEON_PALETTE.length];
+}
+
 // ----------------------------------------------------------------
-// ⚡ ESTADO Y UTILIDADES
+// ⚡ ESTADO Y DOM
 // ----------------------------------------------------------------
 let isAdmin = false;
-let newsData = [];
-
 const DOM = {
     container: document.getElementById('newsBannersContainer'),
     adminPanel: document.getElementById('newsAdminPanel'),
@@ -22,147 +35,264 @@ const DOM = {
     exitBtn: document.getElementById('exitAdminBtn')
 };
 
-const COLORS = ['#2ecc71', '#3498db', '#9b59b6', '#34495e', '#f1c40f', '#e67e22', '#e74c3c', '#1abc9c', '#f39c12', '#95a5a6'];
-const URL_REGEX = /(\b(https?:\/\/[^\s]+|www\.[^\s]+)\b)/g;
-
-const getRandomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
-const linkify = (text) => text.replace(URL_REGEX, url => `<a href="${url.startsWith('http') ? url : 'http://' + url}" target="_blank" rel="noopener">${url}</a>`).replace(/\n/g, '<br>');
-const formatDate = (date) => new Date(date).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' });
-
-// ----------------------------------------------------------------
-// 🎨 RENDERIZADO
-// ----------------------------------------------------------------
-function createCommentHtml(c, bannerId) {
-    const isLiked = localStorage.getItem(`like_${c.id}`) === 'true';
-    return `
-        <div class="comment-item" data-id="${c.id}">
-            <strong>${c.commenter_name}</strong> <small>(${new Date(c.created_at).toLocaleDateString()})</small>: ${c.comment_text}
-            <div style="text-align: right; margin-top: 3px;">
-                <button class="like-btn ${isLiked ? 'liked' : ''}" data-cid="${c.id}" data-bid="${bannerId}">❤️ ${c.likes || 0}</button>
-            </div>
-        </div>`;
+// Formato de fecha usando 'created_at' (tu columna real)
+function formatTimestamp(timestamp) {
+    if (!timestamp) return "Fecha desconocida";
+    const date = new Date(timestamp);
+    return new Intl.DateTimeFormat('es-ES', { 
+        day: '2-digit', month: '2-digit', year: 'numeric', 
+        hour: '2-digit', minute: '2-digit'
+    }).format(date) + ' h';
 }
 
-function createBannerHtml(b) {
-    const comments = b.comments ? b.comments.sort((x, y) => new Date(x.created_at) - new Date(y.created_at)) : [];
-    const allCommentsHtml = comments.map(c => createCommentHtml(c, b.id)).join('');
-    const firstComment = comments.length > 0 ? createCommentHtml(comments[0], b.id) : '';
+function linkify(text) {
+    return text.replace(/(\b(https?:\/\/|www\.)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, (url) => {
+        let fullUrl = url.startsWith('http') ? url : 'http://' + url;
+        return `<a href="${fullUrl}" target="_blank">${url}</a>`;
+    });
+}
+
+// ----------------------------------------------------------------
+// ⚙️ RENDERIZADO (Adaptado a 'banner_comments' y 'created_at')
+// ----------------------------------------------------------------
+
+function createBannerHTML(banner) {
+    const neonColor = getBannerColor(banner.id);
+    const isAdminDisplay = isAdmin ? '' : 'style="display:none;"';
     
-    let btnText = comments.length > 1 ? `Ver ${comments.length - 1} comentarios más...` : (comments.length === 1 ? '1 comentario' : 'Sé el primero en comentar');
-    if (comments.length > 1) btnText = `<button class="view-comments-btn" data-bid="${b.id}" data- expanded="false">${btnText}</button>`;
+    // IMPORTANTE: Usamos 'comments' porque así lo pedimos en la query (ver loadBanners)
+    const commentsList = banner.comments || []; 
+    const commentsCount = commentsList.length;
+    const commentsHTML = createCommentsListHTML(commentsList);
 
-    const deleteBtn = `<button class="delete-banner-btn" style="display:${isAdmin ? 'block' : 'none'};" data-id="${b.id}">×</button>`;
-
+    // Mapeo de datos: banner.created_at (Antiguo) -> Diseño Nuevo
     return `
-        <article class="news-banner" style="background-color: ${b.color}" data-id="${b.id}">
-            ${deleteBtn}
-            <h2 class="banner-title">${b.title}</h2>
-            <p class="banner-date">Publicado: ${formatDate(b.created_at)}</p>
-            <div class="banner-text">${linkify(b.content)}</div>
-            <div class="banner-footer">
-                <div class="comment-controls">${btnText}</div>
-                <div id="list-${b.id}" class="comments-list">${allCommentsHtml}</div>
-                <div class="first-comment-wrap">${firstComment}</div>
-                <div class="comment-form">
-                    <input type="text" placeholder="Tu Nombre" class="c-name" maxlength="30">
-                    <textarea placeholder="Comentario..." class="c-text" maxlength="250"></textarea>
-                    <button class="pub-btn" data-bid="${b.id}">Comentar</button>
-                </div>
+    <div class="news-banner" data-id="${banner.id}">
+        <div class="banner-header">
+            <h3 class="banner-title" style="color: ${neonColor}; text-shadow: 0 0 10px ${neonColor}70">${banner.title}</h3>
+            <p class="banner-date">Publicado: ${formatTimestamp(banner.created_at)}</p>
+            <button class="delete-banner-btn" data-id="${banner.id}" ${isAdminDisplay}>X</button>
+        </div>
+        <div class="banner-text">${linkify(banner.content)}</div>
+        
+        <div class="banner-footer">
+            <div class="comment-controls">
+                <button class="toggle-comments-btn" data-id="${banner.id}" data-expanded="false">
+                    💬 Ver ${commentsCount} Comentarios
+                </button>
             </div>
-        </article>`;
+            
+            <div class="comments-list" id="comments-list-${banner.id}">
+                ${commentsHTML}
+            </div>
+
+            <div class="comment-form">
+                <input type="text" placeholder="Tu Nombre" class="commenter-name" data-id="${banner.id}" maxlength="30">
+                <textarea placeholder="Escribe tu comentario..." class="comment-content" data-id="${banner.id}" maxlength="250"></textarea>
+                <button class="pub-btn" data-id="${banner.id}">Publicar</button>
+            </div>
+        </div>
+    </div>`;
 }
+
+function createCommentsListHTML(comments) {
+    if (!comments || comments.length === 0) {
+        return `<p style="text-align: center; opacity: 0.8; margin: 10px;">Sé el primero en comentar.</p>`;
+    }
+    
+    // Ordenar: El más nuevo arriba
+    const sorted = comments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    
+    return sorted.map((c, index) => {
+        const isLiked = localStorage.getItem(`like_${c.id}`) === 'true';
+        const likeClass = isLiked ? 'liked' : '';
+        
+        // IMPORTANTE: Usamos tus columnas antiguas: commenter_name, comment_text, created_at
+        return `
+            <div class="comment-item" style="display: ${index === 0 ? 'block' : 'none'};">
+                <small>${formatTimestamp(c.created_at)}</small>
+                <strong>${c.commenter_name}</strong>
+                <p>${c.comment_text}</p>
+                <button class="like-btn ${likeClass}" data-comment-id="${c.id}">
+                    <span class="heart">♥</span> <span class="like-count">${c.likes || 0}</span>
+                </button>
+            </div>`;
+    }).join('');
+}
+
+// ----------------------------------------------------------------
+// ⚡ LÓGICA DE BASE DE DATOS (RESTUARADA A LA VERSIÓN ANTIGUA)
+// ----------------------------------------------------------------
 
 async function loadBanners() {
-    DOM.container.innerHTML = '<p style="text-align:center;margin:30px;color:#888">Cargando noticias...</p>';
-    try {
-        const { data, error } = await supabase.from('news_banners')
-            .select('*, comments:banner_comments(*)').order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        newsData = data;
-        DOM.container.innerHTML = data.length ? data.map(createBannerHtml).join('') : '<p style="text-align:center;margin:30px">No hay noticias aún.</p>';
-    } catch (e) {
-        console.error(e);
-        DOM.container.innerHTML = '<p style="text-align:center;color:red">Error de conexión.</p>';
-    }
-}
+    // CONSULTA EXACTA DE LA VERSIÓN ANTIGUA
+    // Pedimos 'news_banners' y unimos con 'banner_comments' usando el alias 'comments'
+    const { data, error } = await supabase
+        .from('news_banners')
+        .select(`
+            *,
+            comments:banner_comments(*)
+        `)
+        .order('created_at', { ascending: false });
 
-// ----------------------------------------------------------------
-// 🕹️ ACCIONES (ADMIN & USUARIO)
-// ----------------------------------------------------------------
-function toggleAdmin(forceExit = false) {
-    isAdmin = forceExit ? false : !isAdmin;
-    DOM.adminPanel.style.display = isAdmin ? 'flex' : 'none';
-    DOM.toggleBtn.style.display = isAdmin ? 'none' : 'block';
-    DOM.formSection.style.display = 'none'; // Reset form visibility
-    
-    // Actualizar visibilidad de botones de eliminar sin recargar todo
-    document.querySelectorAll('.delete-banner-btn').forEach(b => b.style.display = isAdmin ? 'block' : 'none');
+    if (error) {
+        console.error("Error cargando noticias:", error);
+        DOM.container.innerHTML = `<p style="text-align: center; color: #ef473a; margin: 30px;">❌ Error de conexión: ${error.message}</p>`;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        DOM.container.innerHTML = `<p style="text-align: center; color: white; margin: 30px;">No hay noticias publicadas.</p>`;
+        return;
+    }
+
+    DOM.container.innerHTML = data.map(createBannerHTML).join('');
 }
 
 async function handlePublish() {
     const title = DOM.titleInput.value.trim();
     const content = DOM.contentInput.value.trim();
-    if (title.length < 5 || content.length < 10) return alert('Título (5+) y contenido (10+) requeridos.');
 
-    const { error } = await supabase.from('news_banners').insert([{ title, content, color: getRandomColor() }]);
-    if (!error) {
-        DOM.titleInput.value = ''; DOM.contentInput.value = '';
+    if (!title || !content) return alert("Rellena título y contenido.");
+    if (!isAdmin) return alert("Necesitas activar el modo edición.");
+
+    const btn = document.getElementById('publishBannerBtn');
+    btn.disabled = true;
+
+    // INSERTAR EN 'news_banners' (Tu tabla antigua)
+    // Agregamos 'color' para compatibilidad aunque usemos neón dinámico
+    const { error } = await supabase.from('news_banners').insert([{ 
+        title: title, 
+        content: content,
+        color: '#000000' // Valor dummy, el color lo pone el JS
+    }]);
+    
+    btn.disabled = false;
+    
+    if (error) {
+        console.error(error);
+        alert("❌ Error al publicar.");
+    } else {
+        DOM.titleInput.value = '';
+        DOM.contentInput.value = '';
         DOM.formSection.style.display = 'none';
         loadBanners();
-        alert('✅ Publicado.');
-    } else alert('Error al publicar.');
+        alert("✅ Noticia publicada.");
+    }
 }
 
 async function handleDelete(id) {
-    if (!isAdmin || !confirm('¿Eliminar noticia permanentemente?')) return;
-    if (!(await supabase.from('news_banners').delete().eq('id', id)).error) {
-        document.querySelector(`article[data-id="${id}"]`).remove();
-    } else alert('Error al eliminar.');
+    if (!isAdmin) return;
+    if (!confirm("⚠️ ¿Eliminar esta noticia y sus comentarios?")) return;
+
+    const { error } = await supabase.from('news_banners').delete().eq('id', id);
+    
+    if (error) {
+        console.error(error);
+        alert("❌ Error al eliminar.");
+    } else {
+        loadBanners();
+    }
 }
 
 async function handleComment(btn) {
-    const container = btn.closest('.comment-form');
-    const name = container.querySelector('.c-name').value.trim();
-    const text = container.querySelector('.c-text').value.trim();
-    const bannerId = btn.dataset.bid;
-
-    if (name.length < 2 || text.length < 2) return alert('Escribe un nombre y comentario válido.');
+    const bannerId = btn.dataset.id;
+    // Selectores ajustados al HTML nuevo
+    const nameInput = document.querySelector(`.commenter-name[data-id="${bannerId}"]`);
+    const contentInput = document.querySelector(`.comment-content[data-id="${bannerId}"]`);
     
+    const name = nameInput.value.trim();
+    const text = contentInput.value.trim();
+
+    if (name.length < 2 || text.length < 2) return alert("Nombre o comentario muy cortos.");
+
     btn.disabled = true;
-    const { error } = await supabase.from('banner_comments').insert([{ banner_id: bannerId, commenter_name: name, comment_text: text }]);
-    if (!error) {
-        await loadBanners(); // Recarga para ver el comentario ordenado
-    } else alert('Error al comentar.');
+    btn.textContent = "...";
+
+    // INSERTAR EN 'banner_comments' (Tu tabla antigua)
+    // Usamos las columnas antiguas: commenter_name, comment_text
+    const { error } = await supabase.from('banner_comments').insert([{ 
+        banner_id: bannerId, 
+        commenter_name: name, 
+        comment_text: text,
+        likes: 0
+    }]);
+    
     btn.disabled = false;
+    btn.textContent = "Publicar";
+
+    if (error) {
+        console.error(error);
+        alert("❌ Error al comentar.");
+    } else {
+        nameInput.value = '';
+        contentInput.value = '';
+        loadBanners();
+    }
 }
 
 async function handleLike(btn) {
-    const cid = btn.dataset.cid;
-    const key = `like_${cid}`;
-    const isLiked = localStorage.getItem(key) === 'true';
-    const currentLikes = parseInt(btn.textContent.split(' ')[1]) || 0;
+    const commentId = btn.dataset.commentId;
+    const counter = btn.querySelector('.like-count');
+    let currentLikes = parseInt(counter.textContent) || 0;
     
-    // UI Optimista (actualiza antes de la BD)
-    const newLikes = isLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
-    btn.innerHTML = `❤️ ${newLikes}`;
-    btn.classList.toggle('liked');
-    isLiked ? localStorage.removeItem(key) : localStorage.setItem(key, 'true');
+    const key = `like_${commentId}`;
+    const isLiked = localStorage.getItem(key) === 'true';
 
-    await supabase.from('banner_comments').update({ likes: newLikes }).eq('id', cid);
+    // Lógica simple de likes (Local + Integer Update) - Igual que versión antigua
+    if (isLiked) {
+        currentLikes = Math.max(0, currentLikes - 1);
+        btn.classList.remove('liked');
+        localStorage.removeItem(key);
+    } else {
+        currentLikes++;
+        btn.classList.add('liked');
+        localStorage.setItem(key, 'true');
+    }
+    counter.textContent = currentLikes;
+
+    // Actualizar columna 'likes' en tabla 'banner_comments'
+    await supabase.from('banner_comments')
+        .update({ likes: currentLikes })
+        .eq('id', commentId);
 }
 
+// ----------------------------------------------------------------
+// 🛡️ INTERFAZ (VISIBILIDAD)
+// ----------------------------------------------------------------
+
 function toggleComments(btn) {
-    const list = document.getElementById(`list-${btn.dataset.bid}`);
-    const isExp = btn.dataset.expanded === 'true';
-    list.classList.toggle('expanded', !isExp);
-    list.nextElementSibling.style.display = isExp ? 'block' : 'none'; // Toggle first comment visibility
+    const list = document.getElementById(`comments-list-${btn.dataset.id}`);
+    const isExpanded = btn.dataset.expanded === 'true';
+    const items = list.querySelectorAll('.comment-item');
     
-    const total = list.children.length; // Total real comments in list
-    const count = total > 1 ? total - 1 : 0;
-    
-    btn.textContent = isExp ? `Ver ${count} comentarios más...` : 'Ocultar comentarios';
-    btn.dataset.expanded = !isExp;
+    list.classList.toggle('expanded', !isExpanded);
+    btn.dataset.expanded = !isExpanded;
+
+    if (!isExpanded) {
+        items.forEach(item => item.style.display = 'block');
+        btn.textContent = `▲ Ocultar Comentarios`;
+    } else {
+        items.forEach((item, index) => item.style.display = index === 0 ? 'block' : 'none');
+        btn.textContent = `💬 Ver ${items.length} Comentarios`;
+    }
+}
+
+function toggleAdmin(forceExit = false) {
+    if (forceExit || isAdmin) {
+        isAdmin = false;
+        DOM.adminPanel.style.display = 'none';
+        DOM.toggleBtn.style.display = 'block';
+        DOM.formSection.style.display = 'none';
+        // Ocultar botones de borrar
+        document.querySelectorAll('.delete-banner-btn').forEach(b => b.style.display = 'none');
+    } else {
+        isAdmin = true;
+        DOM.adminPanel.style.display = 'flex';
+        DOM.toggleBtn.style.display = 'none';
+        // Mostrar botones de borrar
+        document.querySelectorAll('.delete-banner-btn').forEach(b => b.style.display = 'flex');
+    }
 }
 
 // ----------------------------------------------------------------
@@ -171,19 +301,22 @@ function toggleComments(btn) {
 document.addEventListener('DOMContentLoaded', () => {
     loadBanners();
 
-    // Listeners Estáticos
+    // Listeners de Admin
     DOM.toggleBtn.onclick = () => toggleAdmin();
     if (DOM.exitBtn) DOM.exitBtn.onclick = () => toggleAdmin(true);
     document.getElementById('addBannerBtn').onclick = () => DOM.formSection.style.display = 'block';
     document.getElementById('cancelBannerBtn').onclick = () => DOM.formSection.style.display = 'none';
     document.getElementById('publishBannerBtn').onclick = handlePublish;
 
-    // Listener Delegado (Un solo oído para todo el contenedor)
+    // Listener Global para elementos dinámicos (Banners y Comentarios)
     DOM.container.onclick = (e) => {
-        const t = e.target;
+        // Busca el botón más cercano (por si el usuario hace click en el icono del corazón o texto)
+        const t = e.target.closest('button'); 
+        if (!t) return;
+        
         if (t.classList.contains('delete-banner-btn')) handleDelete(t.dataset.id);
         if (t.classList.contains('pub-btn')) handleComment(t);
         if (t.classList.contains('like-btn')) handleLike(t);
-        if (t.classList.contains('view-comments-btn')) toggleComments(t);
+        if (t.classList.contains('toggle-comments-btn')) toggleComments(t);
     };
 });

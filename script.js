@@ -1,8 +1,8 @@
 // ----------------------------------------------------
 // 🚨 CONFIGURACIÓN DE SUPABASE (BAAS) 🚨
 // ----------------------------------------------------
-const SUPABASE_URL = "https://ebihagvhgakvuoeoukbc.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViaWhhZ3ZoZ2FrdnVvZW91a2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMTM2MTEsImV4cCI6MjA4MDY4OTYxMX0.T3UNdA8bTSpDzLdNb19lTzifqLwfQPAp5fSyIVBECI8"; 
+const SUPABASE_URL = "https://mkvpjsvqjqeuniabjjwr.supabase.co"; 
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdnBqc3ZxanFldW5pYWJqandyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNDM1NDgsImV4cCI6MjA4MDgxOTU0OH0.QWD9dp9qQFWscK-dRTqYX7eKrZe3_2Ev4FqTOl8rPI0"; 
 
 // ----------------------------------------------------
 // 💰 CONFIGURACIÓN API ELTOQUE (Caché Inteligente) 🚨

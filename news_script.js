@@ -1,4 +1,4 @@
-// news_script.js - VERSIÓN CORREGIDA CON RPC LIKES
+// news_script.js - VERSIÓN FINAL CORREGIDA (LIKES PERSISTENTES)
 // ----------------------------------------------------------------
 const SUPABASE_URL = "https://mkvpjsvqjqeuniabjjwr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdnBqc3ZxanFldW5pYWJqandyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTI0MzU0OCwiZXhwIjoyMDgwODE5NTQ4fQ.No4ZOo0sawF6KYJnIrSD2CVQd1lHzNlLSplQgfuHBcg";
@@ -67,15 +67,18 @@ function createBannerHTML(banner) {
             <button class="delete-banner-btn" data-id="${banner.id}" ${isAdminDisplay}>X</button>
         </div>
         <div class="banner-text">${linkify(banner.content)}</div>
+        
         <div class="banner-footer">
             <div class="comment-controls">
                 <button class="toggle-comments-btn" data-id="${banner.id}" data-expanded="false">
                     💬 Ver ${commentsCount} Comentarios
                 </button>
             </div>
+            
             <div class="comments-list" id="comments-list-${banner.id}">
                 ${commentsHTML}
             </div>
+
             <div class="comment-form">
                 <input type="text" placeholder="Tu Nombre" class="commenter-name" data-id="${banner.id}" maxlength="30">
                 <textarea placeholder="Escribe tu comentario..." class="comment-content" data-id="${banner.id}" maxlength="250"></textarea>
@@ -111,11 +114,14 @@ function createCommentsListHTML(comments) {
 async function loadBanners() {
     const { data, error } = await supabase
         .from('news_banners')
-        .select('*, comments:banner_comments(*)')
+        .select(`
+            *,
+            comments:banner_comments(*)
+        `)
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error("Error:", error);
+        console.error("Error cargando datos:", error);
         return;
     }
     DOM.container.innerHTML = data.map(createBannerHTML).join('');
@@ -123,31 +129,37 @@ async function loadBanners() {
 
 async function handleLike(btn) {
     const commentId = btn.dataset.commentId;
-    if (localStorage.getItem(`like_${commentId}`)) return; // Bloqueo si ya dio like
+    
+    // Si ya tiene el like guardado localmente, no hacemos nada
+    if (localStorage.getItem(`like_${commentId}`)) return;
 
-    // 1. Efecto Visual Inmediato
+    // 1. Feedback visual inmediato
     const counter = btn.querySelector('.like-count');
     let currentLikes = parseInt(counter.textContent) || 0;
     counter.textContent = currentLikes + 1;
     btn.classList.add('liked');
     btn.disabled = true;
 
-    // 2. Guardar en LocalStorage
+    // 2. Persistencia en navegador
     localStorage.setItem(`like_${commentId}`, 'true');
 
-    // 3. Llamar a la función SQL que creamos en el Paso 1
+    // 3. Incremento REAL en la base de datos mediante función RPC
     const { error } = await supabase.rpc('increment_comment_likes', { comment_id: commentId });
 
     if (error) {
-        console.error("Error guardando like:", error);
-        // Opcional: Revertir visualmente si falla
+        console.error("Error al sincronizar like:", error);
+        // Revertir en caso de error crítico de red
+        btn.disabled = false;
+        btn.classList.remove('liked');
+        counter.textContent = currentLikes;
+        localStorage.removeItem(`like_${commentId}`);
     }
 }
 
 async function handlePublish() {
     const title = DOM.titleInput.value.trim();
     const content = DOM.contentInput.value.trim();
-    if (!title || !content || !isAdmin) return;
+    if (!title || !content || !isAdmin) return alert("Rellena los campos.");
 
     const btn = document.getElementById('publishBannerBtn');
     btn.disabled = true;
@@ -155,8 +167,10 @@ async function handlePublish() {
     const { error } = await supabase.from('news_banners').insert([{ title, content, color: '#000000' }]);
     
     btn.disabled = false;
-    if (error) alert("Error al publicar.");
-    else {
+    if (error) {
+        console.error(error);
+        alert("Error al publicar.");
+    } else {
         DOM.titleInput.value = ''; DOM.contentInput.value = '';
         DOM.formSection.style.display = 'none';
         loadBanners();
@@ -165,8 +179,8 @@ async function handlePublish() {
 
 async function handleDelete(id) {
     if (!isAdmin || !confirm("¿Eliminar noticia?")) return;
-    await supabase.from('news_banners').delete().eq('id', id);
-    loadBanners();
+    const { error } = await supabase.from('news_banners').delete().eq('id', id);
+    if (!error) loadBanners();
 }
 
 async function handleComment(btn) {
@@ -174,7 +188,7 @@ async function handleComment(btn) {
     const nameInput = document.querySelector(`.commenter-name[data-id="${bannerId}"]`);
     const contentInput = document.querySelector(`.comment-content[data-id="${bannerId}"]`);
     
-    if (nameInput.value.length < 2 || contentInput.value.length < 2) return;
+    if (nameInput.value.length < 2 || contentInput.value.length < 2) return alert("Comentario muy corto.");
 
     btn.disabled = true;
     const { error } = await supabase.from('banner_comments').insert([{ 
@@ -184,7 +198,10 @@ async function handleComment(btn) {
         likes: 0
     }]);
     
-    if (!error) {
+    if (error) {
+        console.error(error);
+        alert("Error al comentar.");
+    } else {
         nameInput.value = ''; contentInput.value = '';
         loadBanners();
     }

@@ -193,7 +193,7 @@ header p { margin: 0.3rem 0 0; font-size: 0.85rem; font-weight: 600; opacity: 0.
 .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
 .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
 .btn-danger { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }
-.btn-secondary { background: rgba(255,255,255,0.3); color: #fff; border: 1px solid white; }
+.btn-secondary { background: rgba(0,0,0,0.3); color: #000; border: 1px solid white; }
 .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
 
 /* --- PANELES --- */

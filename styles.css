@@ -189,7 +189,7 @@ header p { margin: 0.3rem 0 0; font-size: 0.85rem; font-weight: 600; opacity: 0.
 }
 .btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
 
-.btn-news { background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(255,255,255,0.3); margin: 10px auto; padding: 8px 16px; font-size: 0.85rem; }
+.btn-news { background: linear-gradient(135deg, #ffffff 100%, #ffffff 100%); border: 1px solid rgba(255,255,255,0.3); margin: 10px auto; padding: 8px 16px; font-size: 0.85rem; }
 .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
 .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
 .btn-danger { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); }

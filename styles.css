@@ -210,10 +210,10 @@ header p { margin: 0.3rem 0 0; font-size: 0.85rem; font-weight: 600; opacity: 0.
 
 /* --- STATUS PANEL --- */
 .status-panel-container { 
-    background: rgba(255, 255, 197, 0.1); 
+    background: rgba(255, 255, 197, 0.5); 
     border: 1px solid rgba(255,255,255,0.5); 
     padding: 8px; 
-    color: #333; 
+    color: #ffffc5; 
 }
 .status-panel-header { 
     display: flex; justify-content: space-between; font-size: 0.7rem; 

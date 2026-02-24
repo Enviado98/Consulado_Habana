@@ -225,17 +225,8 @@ header p { margin: 0.3rem 0 0; font-size: 0.85rem; font-weight: 600; opacity: 0.
 .status-item.deficit .value { color: var(--acento-rojo); }
 .status-item.divisa .value { color: var(--acento-verde); }
 
-.status-panel-container.admin-mode { padding: 6px; border: 2px dashed var(--acento-rojo); }
-.status-panel-container.admin-mode .status-panel-data { flex-direction: row; flex-wrap: wrap; gap: 3px; }
-.status-panel-container.admin-mode .status-item {
-    width: 23%; flex-direction: column; justify-content: center;
-    background-color: #3f3f46; padding: 3px; border: 1px solid #52525b;
-}
-.status-panel-container.admin-mode input {
-    border: 1px solid var(--acento-rojo); padding: 2px 4px; border-radius: 4px;
-    font-size: 0.85rem; font-weight: 700; text-align: center; width: 100%; margin-top: 3px;
-    background: #18181b; color: white;
-}
+/* Panel de estado oculto en modo edición — es automático, no editable */
+.status-panel-container.admin-mode { display: none; }
 
 /* --- NEWS TICKER (INTACTO - ROJO ORIGINAL) --- */
 .news-ticker-container {
@@ -425,7 +416,5 @@ footer {
     .replies-container { margin-left: 10px; padding-left: 8px; width: calc(100% - 10px); }
     .reply-form { margin-left: 0; width: 100%; }
     
-    .status-panel-container.admin-mode .status-panel-data { flex-direction: row; flex-wrap: wrap; gap: 3px; }
-    .status-panel-container.admin-mode .status-item { flex-direction: column; width: 48%; }
+    /* .status-panel-container oculto en admin-mode — ver regla global */
 }
-

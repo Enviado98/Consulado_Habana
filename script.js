@@ -4,6 +4,12 @@
 const SUPABASE_URL = "https://mkvpjsvqjqeuniabjjwr.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdnBqc3ZxanFldW5pYWJqandyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTI0MzU0OCwiZXhwIjoyMDgwODE5NTQ4fQ.No4ZOo0sawF6KYJnIrSD2CVQd1lHzNlLSplQgfuHBcg"; 
 
+// ----------------------------------------------------
+// 💰 CONFIGURACIÓN TASAS (Yadio + El Toque HTML)
+// ----------------------------------------------------
+// Fuente primaria: Yadio.io (API abierta, sin token)
+// Fuente secundaria: El Toque HTML (para MLC)
+const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 horas
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -35,7 +41,10 @@ const TIME_PANEL_AUTOHIDE_MS = 3000;
 
 let currentData = [];
 let currentNews = []; 
-
+let currentStatus = {
+    deficit_mw: 'Cargando...', dollar_cup: '...', euro_cup: '...', mlc_cup: '...',
+    deficit_edited_at: null, divisa_edited_at: null
+}; 
 
 let userWebId = localStorage.getItem('userWebId');
 if (!userWebId) {
@@ -59,7 +68,9 @@ const DOMElements = {
     saveBtn: document.getElementById('saveBtn'),
     addNewsBtn: document.getElementById('addNewsBtn'),
     deleteNewsBtn: document.getElementById('deleteNewsBtn'),
-    dynamicTickerStyles: document.getElementById('dynamicTickerStyles')
+    dynamicTickerStyles: document.getElementById('dynamicTickerStyles'),
+    statusPanel: document.getElementById('statusPanel'),
+    statusDataContainer: document.getElementById('statusDataContainer')
 };
 
 function timeAgo(timestamp) {
@@ -82,6 +93,126 @@ function timeAgo(timestamp) {
     else if (MINUTES >= 1) { text = `hace ${MINUTES} min.`; } 
     else { text = 'hace unos momentos'; }
     return { text, diff, date: new Date(timestamp) };
+}
+
+// ----------------------------------------------------
+// 💰 LÓGICA DE TASAS — El Toque HTML (trmiExchange.data.api.statistics)
+// ----------------------------------------------------
+// Ruta descubierta por ingeniería inversa del __NEXT_DATA__:
+//   pageProps.trmiExchange.data.api.statistics.USD.median  → 505
+//   pageProps.trmiExchange.data.api.statistics.ECU.avg     → 565 (ECU = EUR)
+//   pageProps.trmiExchange.data.api.statistics.MLC.median  → 405
+
+// Validación: rangos razonables para el mercado informal cubano
+const RATE_VALID = { usd:{min:200,max:700}, eur:{min:200,max:800}, mlc:{min:150,max:700} };
+function isValidRate(currency, value) {
+    const n = parseInt(value);
+    if (isNaN(n)) return false;
+    const { min, max } = RATE_VALID[currency] || { min:200, max:800 };
+    return n >= min && n <= max;
+}
+
+// Fetch con timeout sin AbortSignal (máxima compatibilidad)
+async function fetchWithTimeout(url, opts = {}, ms = 13000) {
+    return Promise.race([
+        fetch(url, opts),
+        new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), ms))
+    ]);
+}
+
+// Extrae las tasas del __NEXT_DATA__ embebido en el HTML de El Toque
+// La ruta exacta es: props.pageProps.trmiExchange.data.api.statistics
+function extractRatesFromNextData(html) {
+    const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+    if (!match) throw new Error("__NEXT_DATA__ no encontrado");
+
+    const json = JSON.parse(match[1]);
+    const stats = json?.props?.pageProps?.trmiExchange?.data?.api?.statistics;
+    if (!stats) throw new Error("statistics no encontrado en trmiExchange");
+
+    // USD: usamos median (es el valor que El Toque muestra en pantalla)
+    const usd = stats.USD?.median ? String(Math.round(stats.USD.median)) : null;
+    // EUR: El Toque usa internamente "ECU" para Euro, muestra avg
+    const eur = stats.ECU?.avg ? String(Math.round(stats.ECU.avg)) : null;
+    // MLC: median
+    const mlc = stats.MLC?.median ? String(Math.round(stats.MLC.median)) : null;
+
+    return { usd, eur, mlc };
+}
+
+// Fallback: Yadio.io para USD/EUR si El Toque falla
+async function fetchFromYadio() {
+    const res = await fetchWithTimeout("https://api.yadio.io/exrates/CUP", {}, 8000);
+    if (!res.ok) throw new Error(`Yadio HTTP ${res.status}`);
+    const json = await res.json();
+    const usd = json.CUP?.USD ? String(Math.round(1 / json.CUP.USD)) : null;
+    const eur = json.CUP?.EUR ? String(Math.round(1 / json.CUP.EUR)) : null;
+    return { usd, eur, mlc: null };
+}
+
+async function fetchElToqueRates() {
+    try {
+        // Verificar caché: no actualizar si los datos son recientes
+        const lastUpdate = new Date(currentStatus.divisa_edited_at || 0).getTime();
+        if ((Date.now() - lastUpdate) < CACHE_DURATION) {
+            console.log("💾 Tasas en caché, sin actualizar.");
+            return;
+        }
+
+        console.log("🔄 Actualizando tasas desde El Toque HTML...");
+
+        let rates = { usd: null, eur: null, mlc: null };
+
+        // Intentar fuente primaria: El Toque HTML via proxy
+        try {
+            const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent("https://eltoque.com/tasas-de-cambio-cuba")}`;
+            const res = await fetchWithTimeout(proxy, {}, 13000);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const html = await res.text();
+            rates = extractRatesFromNextData(html);
+            console.log(`✅ El Toque: USD=${rates.usd} EUR=${rates.eur} MLC=${rates.mlc}`);
+        } catch (e) {
+            console.warn("⚠️ El Toque falló, usando Yadio como fallback:", e.message);
+            try {
+                const yadio = await fetchFromYadio();
+                rates.usd = yadio.usd;
+                rates.eur = yadio.eur;
+                // MLC no disponible en Yadio, conservar el valor en caché
+                rates.mlc = currentStatus.mlc_cup || null;
+                console.log(`✅ Yadio fallback: USD=${rates.usd} EUR=${rates.eur}`);
+            } catch (e2) {
+                console.error("⚠️ Yadio también falló:", e2.message);
+            }
+        }
+
+        // Solo guardar si tenemos USD válido
+        if (!isValidRate('usd', rates.usd)) {
+            console.warn("⚠️ USD inválido, conservando datos en Supabase sin cambios.");
+            return;
+        }
+
+        const usdPrice = rates.usd;
+        const eurPrice = isValidRate('eur', rates.eur) ? rates.eur : (currentStatus.euro_cup || '---');
+        const mlcPrice = isValidRate('mlc', rates.mlc) ? rates.mlc : (currentStatus.mlc_cup || '---');
+
+        const newTime = new Date().toISOString();
+        currentStatus.dollar_cup = usdPrice;
+        currentStatus.euro_cup = eurPrice;
+        currentStatus.mlc_cup = mlcPrice;
+        currentStatus.divisa_edited_at = newTime;
+        renderStatusPanel(currentStatus, admin);
+
+        await supabase.from('status_data').update({
+            dollar_cup: usdPrice,
+            euro_cup: eurPrice,
+            mlc_cup: mlcPrice,
+            divisa_edited_at: newTime
+        }).eq('id', 1);
+
+        console.log(`✅ Tasas guardadas en Supabase: USD=${usdPrice} EUR=${eurPrice} MLC=${mlcPrice}`);
+    } catch (error) {
+        console.error("⚠️ Error actualizando tasas:", error.message);
+    }
 }
 
 // ----------------------------------------------------
@@ -108,7 +239,8 @@ function updateAdminUI(isAdmin) {
         DOMElements.toggleAdminBtn.classList.add('btn-primary');
         disableEditing(); 
     }
-    renderData(currentData, isAdmin);
+    DOMElements.statusPanel.classList.toggle('admin-mode', isAdmin);
+    renderStatusPanel(currentStatus, isAdmin); 
 }
 
 function toggleAdminMode() {
@@ -116,7 +248,7 @@ function toggleAdminMode() {
         updateAdminUI(true); alert("¡🔴 EDITA CON RESPONSABILIDAD!");
     } else {
         if (!confirm("✅️ ¿Terminar la edición?")) return;
-        updateAdminUI(false); loadData(); 
+        updateAdminUI(false); loadData(); loadStatusData(); 
     }
 }
 
@@ -390,8 +522,103 @@ async function getAndDisplayViewCount() {
     const { count } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gt('created_at', yesterday.toISOString());
     el.textContent = `👀 ${count ? count.toLocaleString('es-ES') : '0'} `;
 }
+function renderStatusPanel(status, isAdminMode) {
+    if (isAdminMode) {
+        DOMElements.statusDataContainer.innerHTML = `
+            <div class="status-item"><span class="label">Deficit (MW):</span><input type="text" id="editDeficit" value="${status.deficit_mw || ''}"></div>
+            <div class="status-item"><span class="label">USD (Auto):</span><input type="text" value="${status.dollar_cup}" disabled></div>
+            <div class="status-item"><span class="label">EUR (Auto):</span><input type="text" value="${status.euro_cup}" disabled></div>
+            <div class="status-item"><span class="label">MLC (Auto):</span><input type="text" value="${status.mlc_cup}" disabled></div>`;
+    } else {
+        DOMElements.statusDataContainer.innerHTML = `
+            <div class="status-item deficit"><span class="label">🔌 Déficit:</span><span class="value">${status.deficit_mw || '---'}</span></div>
+            <div class="status-item divisa"><span class="label">💵 USD:</span><span class="value">${status.dollar_cup || '---'}</span></div>
+            <div class="status-item divisa"><span class="label">💶 EUR:</span><span class="value">${status.euro_cup || '---'}</span></div>
+            <div class="status-item divisa"><span class="label">💳 MLC:</span><span class="value">${status.mlc_cup || '---'}</span></div>`;
+    }
+}
+// ----------------------------------------------------
+// ⚡ DÉFICIT ENERGÉTICO — Cubadebate RSS
+// ----------------------------------------------------
+// El RSS de Cubadebate es XML puro, sin JavaScript.
+// La UNE publica un artículo diario con el déficit en el título.
+// Patrones: "pronostica X MW de déficit" | "afectación de X MW"
+const DEFICIT_CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 horas
+
+async function fetchDeficitFromCubadebate() {
+    try {
+        const lastUpdate = new Date(currentStatus.deficit_edited_at || 0).getTime();
+        if ((Date.now() - lastUpdate) < DEFICIT_CACHE_DURATION) {
+            console.log("💾 Déficit en caché, sin actualizar.");
+            return;
+        }
+
+        console.log("🔄 Buscando déficit en Cubadebate RSS...");
+
+        const rssUrl = "http://www.cubadebate.cu/feed/";
+        const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
+
+        const res = await Promise.race([
+            fetch(proxy),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), 12000))
+        ]);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const xml = await res.text();
+
+        // Buscar el artículo más reciente de la UNE sobre déficit
+        // Los títulos siguen estos patrones:
+        //   "Unión Eléctrica pronostica 1 680 MW de déficit..."
+        //   "UNE prevé afectación de 1 880 MW en horario pico..."
+        //   "UNE pronostica afectación de 1 768 MW..."
+        const titleMatches = [...xml.matchAll(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/gi)];
+
+        let deficitMW = null;
+        for (const m of titleMatches) {
+            const title = (m[1] || m[2] || "").toLowerCase();
+            if (!title.includes("déficit") && !title.includes("deficit") && !title.includes("afectación") && !title.includes("une") && !title.includes("unión eléctrica")) continue;
+            // Extraer número con posibles espacios (ej: "1 680" o "1680")
+            const numMatch = title.match(/(\d[\d\s]{2,6}\d)\s*mw/);
+            if (numMatch) {
+                const mw = parseInt(numMatch[1].replace(/\s/g, ""));
+                if (mw >= 100 && mw <= 4000) {
+                    deficitMW = mw;
+                    console.log(`✅ Déficit encontrado en título: "${m[1] || m[2]}" → ${mw} MW`);
+                    break;
+                }
+            }
+        }
+
+        if (!deficitMW) {
+            console.warn("⚠️ No se encontró déficit en el RSS de Cubadebate.");
+            return;
+        }
+
+        const deficitStr = `${deficitMW} MW`;
+        const newTime = new Date().toISOString();
+        currentStatus.deficit_mw = deficitStr;
+        currentStatus.deficit_edited_at = newTime;
+        renderStatusPanel(currentStatus, admin);
+
+        await supabase.from('status_data').update({
+            deficit_mw: deficitStr,
+            deficit_edited_at: newTime
+        }).eq('id', 1);
+
+        console.log(`✅ Déficit guardado en Supabase: ${deficitStr}`);
+    } catch (e) {
+        console.error("⚠️ Error obteniendo déficit:", e.message);
+    }
+}
+
+async function loadStatusData() {
+    const { data } = await supabase.from('status_data').select('*').eq('id', 1).single();
+    if (data) currentStatus = { ...currentStatus, ...data };
+    renderStatusPanel(currentStatus, admin); fetchElToqueRates(); fetchDeficitFromCubadebate();
+}
 async function saveChanges() {
     if (!admin) return;
+    const editDeficit = document.getElementById('editDeficit');
+    const newDeficit = editDeficit ? editDeficit.value : currentStatus.deficit_mw;
     const updates = [];
     document.querySelectorAll(".card").forEach(card => {
         const emoji = card.querySelector('.editable-emoji').value;
@@ -402,6 +629,9 @@ async function saveChanges() {
              updates.push(supabase.from('items').update({ emoji, titulo, contenido, last_edited_timestamp: new Date().toISOString() }).eq('id', id));
         }
     });
+    if (newDeficit !== currentStatus.deficit_mw) {
+        updates.push(supabase.from('status_data').update({ deficit_mw: newDeficit, deficit_edited_at: new Date().toISOString() }).eq('id', 1));
+    }
     if (updates.length > 0) { await Promise.all(updates); alert("✅ Guardado."); location.reload(); } else { alert("No hay cambios."); }
 }
 document.addEventListener('DOMContentLoaded', () => {
@@ -411,7 +641,10 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.deleteNewsBtn.addEventListener('click', deleteNews);
     DOMElements.publishCommentBtn.addEventListener('click', publishComment);
     document.getElementById('fecha-actualizacion').textContent = new Date().toLocaleDateString();
-    registerPageView(); getAndDisplayViewCount(); loadData(); loadNews(); loadComments();
+    registerPageView(); getAndDisplayViewCount(); loadData(); loadNews(); loadComments(); loadStatusData();
+    // Refrescar tasas automáticamente cada 2 horas en pestañas abiertas
+    setInterval(fetchElToqueRates, 2 * 60 * 60 * 1000);
+    setInterval(fetchDeficitFromCubadebate, 2 * 60 * 60 * 1000);
 });
 async function loadData() {
     const { data } = await supabase.from('items').select('*').order('id');

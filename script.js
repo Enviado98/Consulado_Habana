@@ -207,7 +207,7 @@ async function fetchElToqueRates() {
         currentStatus.euro_cup         = eurPrice;
         currentStatus.mlc_cup          = mlcPrice;
         currentStatus.divisa_edited_at = newTime;
-        renderStatusPanel(currentStatus, admin);
+        renderStatusPanel(currentStatus);
 
         await supabase.from('status_data').update({
             dollar_cup: usdPrice, euro_cup: eurPrice,
@@ -283,7 +283,7 @@ async function fetchDeficitFromCubadebate() {
         const newTime    = new Date().toISOString();
         currentStatus.deficit_mw       = deficitStr;
         currentStatus.deficit_edited_at = newTime;
-        renderStatusPanel(currentStatus, admin);
+        renderStatusPanel(currentStatus);
 
         await supabase.from('status_data').update({
             deficit_mw: deficitStr, deficit_edited_at: newTime
@@ -321,7 +321,7 @@ function updateAdminUI(isAdmin) {
         disableEditing(); 
     }
     DOMElements.statusPanel.classList.toggle('admin-mode', isAdmin);
-    renderStatusPanel(currentStatus, isAdmin); 
+    renderStatusPanel(currentStatus); 
 }
 
 function toggleAdminMode() {
@@ -603,31 +603,21 @@ async function getAndDisplayViewCount() {
     const { count } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gt('created_at', yesterday.toISOString());
     el.textContent = `👀 ${count ? count.toLocaleString('es-ES') : '0'} `;
 }
-function renderStatusPanel(status, isAdminMode) {
-    if (isAdminMode) {
-        DOMElements.statusDataContainer.innerHTML = `
-            <div class="status-item"><span class="label">Deficit (MW):</span><input type="text" id="editDeficit" value="${status.deficit_mw || ''}"></div>
-            <div class="status-item"><span class="label">USD (Auto):</span><input type="text" value="${status.dollar_cup}" disabled></div>
-            <div class="status-item"><span class="label">EUR (Auto):</span><input type="text" value="${status.euro_cup}" disabled></div>
-            <div class="status-item"><span class="label">MLC (Auto):</span><input type="text" value="${status.mlc_cup}" disabled></div>`;
-    } else {
-        DOMElements.statusDataContainer.innerHTML = `
-            <div class="status-item deficit"><span class="label">🔌 Déficit:</span><span class="value">${status.deficit_mw || '---'}</span></div>
-            <div class="status-item divisa"><span class="label">💵 USD:</span><span class="value">${status.dollar_cup || '---'}</span></div>
-            <div class="status-item divisa"><span class="label">💶 EUR:</span><span class="value">${status.euro_cup || '---'}</span></div>
-            <div class="status-item divisa"><span class="label">💳 MLC:</span><span class="value">${status.mlc_cup || '---'}</span></div>`;
-    }
+function renderStatusPanel(status) {
+    DOMElements.statusDataContainer.innerHTML = `
+        <div class="status-item deficit"><span class="label">🔌 Déficit:</span><span class="value">${status.deficit_mw || '---'}</span></div>
+        <div class="status-item divisa"><span class="label">💵 USD:</span><span class="value">${status.dollar_cup || '---'}</span></div>
+        <div class="status-item divisa"><span class="label">💶 EUR:</span><span class="value">${status.euro_cup || '---'}</span></div>
+        <div class="status-item divisa"><span class="label">💳 MLC:</span><span class="value">${status.mlc_cup || '---'}</span></div>`;
 }
 
 async function loadStatusData() {
     const { data } = await supabase.from('status_data').select('*').eq('id', 1).single();
     if (data) currentStatus = { ...currentStatus, ...data };
-    renderStatusPanel(currentStatus, admin); fetchElToqueRates(); fetchDeficitFromCubadebate();
+    renderStatusPanel(currentStatus); fetchElToqueRates(); fetchDeficitFromCubadebate();
 }
 async function saveChanges() {
     if (!admin) return;
-    const editDeficit = document.getElementById('editDeficit');
-    const newDeficit = editDeficit ? editDeficit.value : currentStatus.deficit_mw;
     const updates = [];
     document.querySelectorAll(".card").forEach(card => {
         const emoji = card.querySelector('.editable-emoji').value;
@@ -638,9 +628,6 @@ async function saveChanges() {
              updates.push(supabase.from('items').update({ emoji, titulo, contenido, last_edited_timestamp: new Date().toISOString() }).eq('id', id));
         }
     });
-    if (newDeficit !== currentStatus.deficit_mw) {
-        updates.push(supabase.from('status_data').update({ deficit_mw: newDeficit, deficit_edited_at: new Date().toISOString() }).eq('id', 1));
-    }
     if (updates.length > 0) { await Promise.all(updates); alert("✅ Guardado."); location.reload(); } else { alert("No hay cambios."); }
 }
 document.addEventListener('DOMContentLoaded', () => {

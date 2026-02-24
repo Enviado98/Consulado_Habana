@@ -143,7 +143,7 @@ function extractRatesFromNextData(html) {
     if (!stats) throw new Error("trmiExchange.data.api.statistics no encontrado");
     return {
         usd: stats.USD?.median != null ? String(Math.round(stats.USD.median)) : null,
-        eur: stats.ECU?.avg    != null ? String(Math.round(stats.ECU.avg))    : null,
+        eur: stats.ECU?.median != null ? String(Math.round(stats.ECU.median)) : null,
         mlc: stats.MLC?.median != null ? String(Math.round(stats.MLC.median)) : null,
     };
 }
@@ -717,3 +717,4 @@ async function loadData() {
         document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
     }
             }
+

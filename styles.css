@@ -213,12 +213,12 @@ header p { margin: 0.3rem 0 0; font-size: 0.85rem; font-weight: 600; opacity: 0.
 @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
 .status-panel-data { 
-    display: flex; justify-content: space-between; align-items: center;
-    flex-wrap: nowrap; gap: 3px; text-align: center; overflow-x: auto;
+    display: flex; justify-content: center; align-items: center;
+    flex-wrap: wrap; gap: 4px; text-align: center;
 }
 .status-item { 
-    background: #27272a; padding: 4px; border-radius: 6px; border: 1px solid var(--glass-border);
-    min-width: 75px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
+    background: #27272a; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--glass-border);
+    min-width: 68px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
 }
 .status-item .value { font-size: 1rem; font-weight: 900; display: block; }
 .status-item .label { font-size: 0.6rem; font-weight: 600; margin-bottom: 1px; color: var(--color-texto-secundario); }
@@ -405,8 +405,8 @@ footer {
     .card h3 { font-size: 0.8rem; margin: 3px 0 6px 0; }
     header h1 { font-size: 1.2rem; }
     .status-panel-container { font-size: 0.7rem; padding: 5px; }
-    .status-panel-data { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; }
-    .status-item { min-width: 70px; flex-shrink: 0; padding: 3px; }
+    .status-panel-data { flex-wrap: wrap; gap: 3px; justify-content: center; }
+    .status-item { min-width: 62px; flex-shrink: 0; padding: 3px; }
     
     /* Ajustes Mobile Comentarios */
     .comment-main-row { gap: 8px; }
@@ -418,3 +418,4 @@ footer {
     
     /* .status-panel-container oculto en admin-mode — ver regla global */
 }
+

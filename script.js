@@ -41,7 +41,7 @@ const TIME_PANEL_AUTOHIDE_MS = 3000;
 let currentData = [];
 let currentNews = []; 
 let currentStatus = {
-    deficit_mw: 'Cargando...', dollar_cup: '...', euro_cup: '...', mlc_cup: '...', cad_cup: '...', mxn_cup: '...', cla_cup: '...',
+    deficit_mw: 'Cargando...', dollar_cup: '...', euro_cup: '...', mlc_cup: '...',
     deficit_edited_at: null, divisa_edited_at: null
 }; 
 
@@ -103,7 +103,7 @@ function timeAgo(timestamp) {
 //     .ECU.avg    → tasa EUR (ej: 565)  ← El Toque usa "ECU" internamente
 //     .MLC.median → tasa MLC (ej: 405)
 
-const RATE_VALID = { usd:{min:200,max:700}, eur:{min:200,max:800}, mlc:{min:150,max:700}, cad:{min:150,max:600}, mxn:{min:15,max:80}, cla:{min:200,max:800} };
+const RATE_VALID = { usd:{min:200,max:700}, eur:{min:200,max:800}, mlc:{min:150,max:700} };
 
 function isValidRate(currency, value) {
     const n = parseInt(value);
@@ -142,14 +142,9 @@ function extractRatesFromNextData(html) {
     const stats = JSON.parse(match[1])?.props?.pageProps?.trmiExchange?.data?.api?.statistics;
     if (!stats) throw new Error("trmiExchange.data.api.statistics no encontrado");
     return {
-        usd: stats.USD?.median != null ? String(Math.round(stats.USD.median))   : null,
-        eur: stats.ECU?.avg    != null ? String(Math.round(stats.ECU.avg))     : null,
-        mlc: stats.MLC?.median != null ? String(Math.round(stats.MLC.median))  : null,
-        cad: stats.CAD?.median != null ? String(Math.round(stats.CAD.median))  : null,
-        // MXN tiene decimales — redondear a 2 decimales
-        mxn: stats.MXN?.median != null ? String(parseFloat(stats.MXN.median).toFixed(2)) : null,
-        // CLA = Clásica (tarjeta CUP de tiendas MLC)
-        cla: stats.CLA?.median != null ? String(Math.round(stats.CLA.median))  : null,
+        usd: stats.USD?.median != null ? String(Math.round(stats.USD.median)) : null,
+        eur: stats.ECU?.avg    != null ? String(Math.round(stats.ECU.avg))    : null,
+        mlc: stats.MLC?.median != null ? String(Math.round(stats.MLC.median)) : null,
     };
 }
 
@@ -177,7 +172,7 @@ async function fetchElToqueRates() {
         }
         console.log("🔄 Actualizando tasas...");
 
-        let rates = { usd: null, eur: null, mlc: null, cad: null, mxn: null, cla: null };
+        let rates = { usd: null, eur: null, mlc: null };
 
         // Fuente primaria: El Toque HTML (tiene USD + EUR + MLC exactos)
         try {
@@ -192,9 +187,6 @@ async function fetchElToqueRates() {
                 rates.usd = y.usd;
                 rates.eur = y.eur;
                 rates.mlc = currentStatus.mlc_cup || null; // conservar último MLC conocido
-                rates.cad = currentStatus.cad_cup || null;
-                rates.mxn = currentStatus.mxn_cup || null;
-                rates.cla = currentStatus.cla_cup || null;
                 console.log(`✅ Yadio: USD=${rates.usd} EUR=${rates.eur}`);
             } catch (e2) {
                 console.error("⚠️ Yadio también falló:", e2.message);
@@ -209,27 +201,20 @@ async function fetchElToqueRates() {
         const usdPrice = rates.usd;
         const eurPrice = isValidRate('eur', rates.eur) ? rates.eur : (currentStatus.euro_cup || '---');
         const mlcPrice = isValidRate('mlc', rates.mlc) ? rates.mlc : (currentStatus.mlc_cup || '---');
-        const cadPrice = isValidRate('cad', rates.cad) ? rates.cad : (currentStatus.cad_cup || '---');
-        const mxnPrice = isValidRate('mxn', rates.mxn) ? rates.mxn : (currentStatus.mxn_cup || '---');
-        const claPrice = isValidRate('cla', rates.cla) ? rates.cla : (currentStatus.cla_cup || '---');
         const newTime  = new Date().toISOString();
 
         currentStatus.dollar_cup       = usdPrice;
         currentStatus.euro_cup         = eurPrice;
         currentStatus.mlc_cup          = mlcPrice;
-        currentStatus.cad_cup          = cadPrice;
-        currentStatus.mxn_cup          = mxnPrice;
-        currentStatus.cla_cup          = claPrice;
         currentStatus.divisa_edited_at = newTime;
         renderStatusPanel(currentStatus);
 
         await supabase.from('status_data').update({
             dollar_cup: usdPrice, euro_cup: eurPrice,
-            mlc_cup: mlcPrice, cad_cup: cadPrice,
-            mxn_cup: mxnPrice, cla_cup: claPrice, divisa_edited_at: newTime
+            mlc_cup: mlcPrice, divisa_edited_at: newTime
         }).eq('id', 1);
 
-        console.log(`✅ Tasas guardadas: USD=${usdPrice} EUR=${eurPrice} MLC=${mlcPrice} CAD=${cadPrice} MXN=${mxnPrice} CLA=${claPrice}`);
+        console.log(`✅ Tasas guardadas: USD=${usdPrice} EUR=${eurPrice} MLC=${mlcPrice}`);
     } catch (err) {
         console.error("⚠️ fetchElToqueRates:", err.message);
     }
@@ -691,10 +676,7 @@ function renderStatusPanel(status) {
         <div class="status-item deficit"><span class="label">🔌 Déficit:</span><span class="value">${status.deficit_mw || '---'}</span></div>
         <div class="status-item divisa"><span class="label">💵 USD:</span><span class="value">${status.dollar_cup || '---'}</span></div>
         <div class="status-item divisa"><span class="label">💶 EUR:</span><span class="value">${status.euro_cup || '---'}</span></div>
-        <div class="status-item divisa"><span class="label">💳 MLC:</span><span class="value">${status.mlc_cup || '---'}</span></div>
-        <div class="status-item divisa"><span class="label">🍁 CAD:</span><span class="value">${status.cad_cup || '---'}</span></div>
-        <div class="status-item divisa"><span class="label">🇲🇽 MXN:</span><span class="value">${status.mxn_cup || '---'}</span></div>
-        <div class="status-item divisa"><span class="label">💳 CLA:</span><span class="value">${status.cla_cup || '---'}</span></div>`;
+        <div class="status-item divisa"><span class="label">💳 MLC:</span><span class="value">${status.mlc_cup || '---'}</span></div>`;
 }
 
 async function loadStatusData() {
@@ -734,5 +716,4 @@ async function loadData() {
         currentData = data; DOMElements.contenedor.innerHTML = data.map((item, i) => createCardHTML(item, i)).join('');
         document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
     }
-        }
-
+            }

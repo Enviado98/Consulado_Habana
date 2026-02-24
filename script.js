@@ -500,6 +500,45 @@ function drawReplies(container, replies, userLikesMap) {
     });
 }
 
+async function purgeOldComments(allComments) {
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    // Agrupar respuestas por comentario padre
+    const repliesMap = new Map();
+    allComments.forEach(c => {
+        if (c.parent_id !== null) {
+            if (!repliesMap.has(c.parent_id)) repliesMap.set(c.parent_id, []);
+            repliesMap.get(c.parent_id).push(c);
+        }
+    });
+
+    const toDelete = []; // IDs a borrar (comentarios + sus respuestas)
+
+    allComments
+        .filter(c => c.parent_id === null) // solo raíces
+        .forEach(root => {
+            const replies = repliesMap.get(root.id) || [];
+            // Timestamp más reciente del hilo: el raíz o la última respuesta
+            const allTimestamps = [root, ...replies].map(c => new Date(c.timestamp).getTime());
+            const mostRecent = Math.max(...allTimestamps);
+
+            if (now - mostRecent > THIRTY_DAYS) {
+                // Todo el hilo tiene más de 30 días sin actividad → borrar
+                toDelete.push(root.id, ...replies.map(r => r.id));
+            }
+        });
+
+    if (toDelete.length > 0) {
+        // Borrar likes asociados primero (integridad referencial)
+        await supabase.from('likes').delete().in('comment_id', toDelete);
+        await supabase.from('comentarios').delete().in('id', toDelete);
+        console.log(`🗑 Purgados ${toDelete.length} comentarios con +30 días sin actividad.`);
+        return true; // indica que hubo cambios
+    }
+    return false;
+}
+
 async function loadComments() {
     const [commentsResponse, likesResponse] = await Promise.all([
         supabase.from('comentarios').select('*').order('timestamp', { ascending: false }),
@@ -508,9 +547,17 @@ async function loadComments() {
 
     if (commentsResponse.error) return DOMElements.commentsContainer.innerHTML = `<p style="text-align: center; color: #d90429;">❌ Error al cargar comentarios.</p>`;
     
-    const allComments = commentsResponse.data;
+    let allComments = commentsResponse.data;
     const userLikesMap = new Map();
     if (likesResponse.data) likesResponse.data.forEach(like => userLikesMap.set(like.comment_id, true));
+
+    // Limpiar comentarios con +30 días sin actividad (respuestas reinician el contador)
+    const purged = await purgeOldComments(allComments);
+    if (purged) {
+        // Recargar tras purga para mostrar estado actualizado
+        const { data } = await supabase.from('comentarios').select('*').order('timestamp', { ascending: false });
+        allComments = data || [];
+    }
     
     const principalComments = allComments.filter(c => c.parent_id === null);
     const repliesMap = allComments.reduce((map, comment) => {

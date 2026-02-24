@@ -620,17 +620,38 @@ async function handlePublishReply(event) {
 }
 
 async function handleLikeToggle(event) {
-    const btn = event.currentTarget; const id = btn.getAttribute('data-id'); const isLiked = btn.classList.contains('liked'); const counter = btn.querySelector('.like-count');
+    const btn = event.currentTarget;
+    const id = btn.getAttribute('data-id');
+    const isLiked = btn.classList.contains('liked');
+    const counter = btn.querySelector('.like-count');
     btn.disabled = true;
+
     try {
         if (isLiked) {
-            await supabase.from('likes').delete().eq('comment_id', id).eq('user_web_id', userWebId); await supabase.rpc('decrement_likes', { row_id: id });
-            btn.classList.remove('liked'); counter.textContent = Math.max(0, parseInt(counter.textContent) - 1);
+            // Quitar like: borrar de tabla likes y decrementar en comentarios
+            await supabase.from('likes').delete().eq('comment_id', id).eq('user_web_id', userWebId);
+            const newCount = Math.max(0, parseInt(counter.textContent) - 1);
+            await supabase.from('comentarios').update({ likes_count: newCount }).eq('id', id);
+            btn.classList.remove('liked');
+            counter.textContent = newCount;
         } else {
+            // Dar like: insertar en tabla likes (ignorar si ya existe) y incrementar
             const { error } = await supabase.from('likes').insert([{ comment_id: id, user_web_id: userWebId }]);
-            if (!error || error.code === '23505') { if (!error) await supabase.rpc('increment_likes', { row_id: id }); btn.classList.add('liked'); counter.textContent = parseInt(counter.textContent) + 1; }
+            if (!error || error.code === '23505') {
+                // '23505' = unique constraint violation (ya le había dado like) — igual actualizamos UI
+                if (!error) {
+                    // Solo incrementar en DB si el insert fue nuevo (no duplicado)
+                    const newCount = parseInt(counter.textContent) + 1;
+                    await supabase.from('comentarios').update({ likes_count: newCount }).eq('id', id);
+                    counter.textContent = newCount;
+                }
+                btn.classList.add('liked');
+            }
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error('⚠️ Error en like:', e);
+    }
+
     btn.disabled = false;
 }
 

@@ -125,8 +125,6 @@ function elToqueVal(s, dec = 0) {
     if (!s) return null;
     const count = s.count_values ?? 0;
     let v;
-    // El Toque usa median si count_values >= 30 (umbral observado: CAD=33→median, CLA=11→ema)
-    // Con 11 muestras (CLA) usa ema_value; con 33 (CAD) ya usa median
     if (count >= 30 && s.median != null) {
         v = s.median;           // suficientes muestras → median
     } else if (s.ema_value != null) {
@@ -172,7 +170,7 @@ async function fetchViaProxy(targetUrl, timeoutMs = 12000) {
     throw new Error("Todos los proxies fallaron");
 }
 
-// Extrae TODAS las divisas del __NEXT_DATA__ de El Toque (scraping HTML)
+// Extrae TODAS las divisas del __NEXT_DATA__ de El Toque
 function extractRatesFromNextData(html) {
     const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
     if (!match) throw new Error("__NEXT_DATA__ no encontrado");
@@ -181,27 +179,6 @@ function extractRatesFromNextData(html) {
     const rates = {};
     for (const d of DIVISAS) {
         rates[d.key] = elToqueVal(stats[d.stat], d.dec);  // ✅ respeta decimales por divisa
-    }
-    return rates;
-}
-
-// Consulta directa a la API JSON de El Toque (más fresca que el HTML)
-// Endpoint: https://eltoque.com/es — devuelve __NEXT_DATA__ con statistics actualizado
-async function fetchRatesFromElToqueAPI() {
-    const html = await fetchViaProxy("https://eltoque.com/es");
-    // La página /es también embebe __NEXT_DATA__ con las statistics
-    const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
-    if (!match) throw new Error("__NEXT_DATA__ no encontrado en /es");
-    const json = JSON.parse(match[1]);
-    // La estructura puede variar: buscar statistics en varias rutas posibles
-    const stats =
-        json?.props?.pageProps?.trmiExchange?.data?.api?.statistics ||
-        json?.props?.pageProps?.statistics ||
-        json?.props?.pageProps?.data?.api?.statistics;
-    if (!stats) throw new Error("statistics no encontrado en /es");
-    const rates = {};
-    for (const d of DIVISAS) {
-        rates[d.key] = elToqueVal(stats[d.stat], d.dec);
     }
     return rates;
 }
@@ -229,26 +206,20 @@ async function fetchElToqueRates() {
         }
         console.log("🔄 Actualizando tasas...");
 
-        // Intentar El Toque — método 1: API /es (más fresca, igual que test v4)
+        // Intentar El Toque primero
         let rawRates = {};
         try {
-            rawRates = await fetchRatesFromElToqueAPI();
-            console.log("✅ El Toque /es OK:", JSON.stringify(rawRates));
-        } catch (e1) {
-            console.warn("⚠️ El Toque /es falló, intentando /tasas-de-cambio-cuba:", e1.message);
+            const html = await fetchViaProxy("https://eltoque.com/tasas-de-cambio-cuba");
+            rawRates = extractRatesFromNextData(html);
+            console.log("✅ El Toque OK:", JSON.stringify(rawRates));
+        } catch (e) {
+            console.warn("⚠️ El Toque falló, usando Yadio:", e.message);
             try {
-                const html = await fetchViaProxy("https://eltoque.com/tasas-de-cambio-cuba");
-                rawRates = extractRatesFromNextData(html);
-                console.log("✅ El Toque HTML OK:", JSON.stringify(rawRates));
+                const y = await fetchFromYadio();
+                rawRates = { USD: y.USD, EUR: y.EUR };
+                console.log(`✅ Yadio: USD=${rawRates.USD} EUR=${rawRates.EUR}`);
             } catch (e2) {
-                console.warn("⚠️ El Toque HTML falló, usando Yadio:", e2.message);
-                try {
-                    const y = await fetchFromYadio();
-                    rawRates = { USD: y.USD, EUR: y.EUR };
-                    console.log(`✅ Yadio: USD=${rawRates.USD} EUR=${rawRates.EUR}`);
-                } catch (e3) {
-                    console.error("⚠️ Yadio también falló:", e3.message);
-                }
+                console.error("⚠️ Yadio también falló:", e2.message);
             }
         }
 
@@ -783,6 +754,3 @@ async function loadData() {
         document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
     }
             }
-
-
-

@@ -232,6 +232,22 @@ header p { margin: 0.3rem 0 0; font-size: 0.85rem; font-weight: 600; opacity: 0.
 .status-item.deficit .value { color: var(--acento-rojo); }
 .status-item.divisa .value { color: var(--acento-verde); }
 
+.eltoque-attribution {
+    text-align: center;
+    font-size: 0.62rem;
+    color: var(--color-texto-secundario);
+    padding: 4px 0 2px;
+    opacity: 0.7;
+}
+.eltoque-attribution a {
+    color: var(--acento-verde);
+    text-decoration: none;
+    font-weight: 600;
+}
+.eltoque-attribution a:hover {
+    text-decoration: underline;
+}
+
 /* Panel de estado oculto en modo edición — es automático, no editable */
 .status-panel-container.admin-mode { display: none; }
 
@@ -426,4 +442,5 @@ footer {
     
     /* .status-panel-container oculto en admin-mode — ver regla global */
    }
+
 

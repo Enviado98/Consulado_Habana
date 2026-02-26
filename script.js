@@ -714,7 +714,7 @@ function renderStatusPanel(status) {
             <div class="status-item divisa"><span class="label">🇧🇷 BRL</span><span class="value">${status.brl_cup || '---'}</span></div>
             <div class="status-item divisa"><span class="label">💎 CLA</span><span class="value">${status.cla_cup || '---'}</span></div>
         </div>
-        <div class="eltoque-attribution">Información extraída de <a href="https://eltoque.com" target="_blank" rel="noopener noreferrer">El Toque</a></div>`;
+        <div class="eltoque-attribution">Información obtenida de <a href="https://eltoque.com" target="_blank" rel="noopener noreferrer">El Toque</a></div>`;
 }
 
 async function loadStatusData() {

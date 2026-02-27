@@ -70,8 +70,26 @@ const DOMElements = {
     deleteNewsBtn: document.getElementById('deleteNewsBtn'),
     dynamicTickerStyles: document.getElementById('dynamicTickerStyles'),
     statusPanel: document.getElementById('statusPanel'),
-    statusDataContainer: document.getElementById('statusDataContainer')
+    statusDataContainer: document.getElementById('statusDataContainer'),
+    noticiasList: document.getElementById('noticias-list'),
+    noticiasAdminBtns: document.getElementById('noticiasAdminBtns'),
 };
+
+// ── NAVEGACIÓN POR TABS ───────────────────────────────────────
+function initTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.dataset.tab;
+            tabBtns.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(target).classList.add('active');
+            // Ocultar status+ticker en chat, mostrarlos en el resto
+            document.body.classList.toggle('chat-active', target === 'view-chat');
+        });
+    });
+}
 
 function timeAgo(timestamp) {
     if (!timestamp) return { text: 'Sin fecha de edición.', diff: -1, date: null };
@@ -125,7 +143,7 @@ function elToqueVal(s, dec = 0) {
     if (!s) return null;
     const count = s.count_values ?? 0;
     let v;
-    if (count >= 30 && s.median != null) {
+    if (count >= 11 && s.median != null) {
         v = s.median;           // suficientes muestras → median
     } else if (s.ema_value != null) {
         v = s.ema_value;        // pocas muestras → ema_value
@@ -334,8 +352,8 @@ function updateAdminUI(isAdmin) {
         DOMElements.body.classList.add('admin-mode');
         DOMElements.adminControlsPanel.style.display = "flex";
         DOMElements.statusMessage.textContent = "¡🔴 EDITA CON RESPONSABILIDAD!";
-        DOMElements.statusMessage.style.color = "#ef233c"; 
-        DOMElements.toggleAdminBtn.textContent = "🛑 SALIR MODO EDICIÓN"; 
+        DOMElements.statusMessage.style.color = "var(--red)"; 
+        DOMElements.toggleAdminBtn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Salir del Modo Edición'; 
         DOMElements.toggleAdminBtn.classList.remove('btn-primary');
         DOMElements.toggleAdminBtn.classList.add('btn-danger');
         enableEditing(); 
@@ -343,13 +361,16 @@ function updateAdminUI(isAdmin) {
         DOMElements.body.classList.remove('admin-mode');
         DOMElements.adminControlsPanel.style.display = "none";
         DOMElements.statusMessage.textContent = "Activa modo edición y actualiza la información"; 
-        DOMElements.statusMessage.style.color = "var(--color-texto-principal)"; 
-        DOMElements.toggleAdminBtn.textContent = "🛡️ ACTIVAR EL MODO EDICIÓN"; 
+        DOMElements.statusMessage.style.color = "var(--t2)"; 
+        DOMElements.toggleAdminBtn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg> Activar Modo Edición'; 
         DOMElements.toggleAdminBtn.classList.remove('btn-danger');
         DOMElements.toggleAdminBtn.classList.add('btn-primary');
         disableEditing(); 
     }
     DOMElements.statusPanel.classList.toggle('admin-mode', isAdmin);
+    // Ocultar ticker también en modo edición
+    if (DOMElements.newsTicker) DOMElements.newsTicker.style.display = isAdmin ? 'none' : '';
+    if (DOMElements.noticiasAdminBtns) DOMElements.noticiasAdminBtns.classList.toggle('visible', isAdmin);
     renderStatusPanel(currentStatus); 
 }
 
@@ -436,6 +457,8 @@ async function loadNews() {
     const validNews = []; const cutoff = Date.now() - RECENT_THRESHOLD_MS;
     newsData.forEach(n => { if (new Date(n.timestamp).getTime() > cutoff) validNews.push(n); else supabase.from('noticias').delete().eq('id', n.id); });
     currentNews = validNews;
+
+    // ── TICKER (barra roja superior) ──────────────────────────
     if (validNews.length > 0) {
         const html = validNews.map(n => `<span class="news-item">${linkify(n.text)} <small>(${timeAgo(n.timestamp).text})</small></span>`).join('<span class="news-item"> | </span>');
         DOMElements.newsTickerContent.innerHTML = `${html}<span class="news-item"> | </span>${html}`;
@@ -448,6 +471,23 @@ async function loadNews() {
         DOMElements.newsTickerContent.innerHTML = `<span class="news-item">Sin Noticias recientes... || 🛡 Activa el modo edición para publicar</span>`.repeat(2);
         DOMElements.newsTickerContent.style.animation = `ticker-move-static 15s linear infinite`;
     }
+
+    // ── TAB DE NOTICIAS (lista de cards) ─────────────────────
+    renderNoticiasList(validNews);
+}
+
+function renderNoticiasList(news) {
+    if (!DOMElements.noticiasList) return;
+    if (!news || news.length === 0) {
+        DOMElements.noticiasList.innerHTML = `<div class="noticias-empty">😶 No hay noticias recientes.<br>Activa el modo edición para publicar.</div>`;
+        return;
+    }
+    DOMElements.noticiasList.innerHTML = news.map(n => `
+        <div class="noticia-card">
+            <div class="noticia-texto">${linkify(n.text)}</div>
+            <div class="noticia-meta">${timeAgo(n.timestamp).text}</div>
+        </div>
+    `).join('');
 }
 
 async function addQuickNews() {
@@ -713,8 +753,7 @@ function renderStatusPanel(status) {
             <div class="status-item divisa"><span class="label">🇲🇽 MXN</span><span class="value">${status.mxn_cup || '---'}</span></div>
             <div class="status-item divisa"><span class="label">🇧🇷 BRL</span><span class="value">${status.brl_cup || '---'}</span></div>
             <div class="status-item divisa"><span class="label">💎 CLA</span><span class="value">${status.cla_cup || '---'}</span></div>
-        </div>
-        <div class="eltoque-attribution">Información obtenida de <a href="https://eltoque.com" target="_blank" rel="noopener noreferrer">El Toque</a></div>`;
+        </div>`;
 }
 
 async function loadStatusData() {
@@ -737,16 +776,54 @@ async function saveChanges() {
     if (updates.length > 0) { await Promise.all(updates); alert("✅ Guardado."); location.reload(); } else { alert("No hay cambios."); }
 }
 document.addEventListener('DOMContentLoaded', () => {
+    initTabs();
     DOMElements.toggleAdminBtn.addEventListener('click', toggleAdminMode);
     DOMElements.saveBtn.addEventListener('click', saveChanges);
-    DOMElements.addNewsBtn.addEventListener('click', addQuickNews);
     DOMElements.deleteNewsBtn.addEventListener('click', deleteNews);
     DOMElements.publishCommentBtn.addEventListener('click', publishComment);
-    document.getElementById('fecha-actualizacion').textContent = new Date().toLocaleDateString();
+    document.getElementById('fecha-actualizacion').textContent = new Date().toLocaleDateString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric'});
     registerPageView(); getAndDisplayViewCount(); loadData(); loadNews(); loadComments(); loadStatusData();
-    // Actualización automática cada 10 minutos en pestañas abiertas
     setInterval(fetchElToqueRates,          10 * 60 * 1000);
     setInterval(fetchDeficitFromCubadebate, 10 * 60 * 1000);
+
+    // ── MODAL AÑADIR NOTICIA (público, sin necesidad de admin) ──
+    const modal       = document.getElementById('newsModal');
+    const openBtn     = document.getElementById('openNewsModalBtn');
+    const closeBtn    = document.getElementById('closeNewsModal');
+    const submitBtn   = document.getElementById('submitNewsBtn');
+    const textarea    = document.getElementById('newsModalText');
+    const charCount   = document.getElementById('newsCharCount');
+
+    function openModal()  { modal.style.display = 'flex'; textarea.focus(); }
+    function closeModal() { modal.style.display = 'none'; textarea.value = ''; if (charCount) charCount.textContent = '0'; }
+
+    if (openBtn)   openBtn.addEventListener('click', openModal);
+    if (closeBtn)  closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+    if (textarea && charCount) {
+        textarea.addEventListener('input', () => { charCount.textContent = textarea.value.length; });
+    }
+
+    if (submitBtn && textarea) {
+        submitBtn.addEventListener('click', async () => {
+            const text = textarea.value.trim();
+            if (text.length < 3) return;
+            submitBtn.disabled = true;
+            const { error } = await supabase.from('noticias').insert([{ text }]);
+            if (!error) { closeModal(); await loadNews(); }
+            else { alert('❌ Error al publicar. Intenta de nuevo.'); }
+            submitBtn.disabled = false;
+        });
+    }
+
+    // Enter en el chat envía el comentario
+    const chatMsgInput = document.getElementById('commentText');
+    if (chatMsgInput) {
+        chatMsgInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); publishComment(); }
+        });
+    }
 });
 async function loadData() {
     const { data } = await supabase.from('items').select('*').order('id');

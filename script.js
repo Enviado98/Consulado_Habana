@@ -505,10 +505,22 @@ async function addQuickNews() {
     if (text && confirm("¿Publicar?")) { await supabase.from('noticias').insert([{ text: text.trim() }]); loadNews(); }
 }
 async function deleteNews() {
-    if (!admin || currentNews.length === 0) return alert("No hay noticias.");
-    const list = currentNews.map((n, i) => `${i + 1}. ${n.text}`).join('\n');
-    const idx = parseInt(prompt(`Eliminar número:\n${list}`)) - 1;
-    if (currentNews[idx] && confirm("¿Eliminar?")) { await supabase.from('noticias').delete().eq('id', currentNews[idx].id); loadNews(); }
+    if (!admin) return;
+
+    // Si currentNews esta vacio, consultar Supabase directamente (sin filtro de tiempo)
+    let newsToDelete = currentNews;
+    if (newsToDelete.length === 0) {
+        const { data, error } = await supabase.from('noticias').select('id, text, timestamp').order('timestamp', { ascending: false });
+        if (error || !data || data.length === 0) return alert("No hay noticias.");
+        newsToDelete = data;
+    }
+
+    const list = newsToDelete.map((n, i) => `${i + 1}. ${n.text}`).join("\n");
+    const idx = parseInt(prompt(`Eliminar numero:\n${list}`)) - 1;
+    if (newsToDelete[idx] && confirm("Eliminar?")) {
+        await supabase.from('noticias').delete().eq('id', newsToDelete[idx].id);
+        loadNews();
+    }
 }
 
 // ----------------------------------------------------

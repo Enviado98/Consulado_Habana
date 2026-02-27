@@ -123,8 +123,9 @@ function timeAgo(timestamp) {
 //   4. Se leen de Supabase al cargar la página
 //
 // Lógica de El Toque para elegir el valor a mostrar:
-//   count_values > 10 → median  (suficientes reportes del día)
-//   count_values <= 10 → ema_value (media móvil, más estable)
+//   MXN, BRL, CLA → siempre ema_value (media móvil)
+//   Resto: count_values > 10 → median  (suficientes reportes del día)
+//          count_values <= 10 → ema_value (media móvil, más estable)
 //
 // Mapa completo de divisas: clave interna → columna Supabase
 const DIVISAS = [
@@ -137,18 +138,26 @@ const DIVISAS = [
     { key: 'CLA', stat: 'CLA',  col: 'cla_cup',    dec: 0, min: 200, max: 800 },
 ];
 
+// Divisas que siempre usan ema_value (independientemente del count_values)
+const ALWAYS_EMA = new Set(['MXN', 'BRL', 'CLA']);
+
 // Extrae el valor correcto de una entrada de statistics de El Toque
 // dec: número de decimales a conservar (0 para USD/EUR/MLC/CAD, 2 para MXN/BRL/CLA)
-function elToqueVal(s, dec = 0) {
+function elToqueVal(s, dec = 0, key = '') {
     if (!s) return null;
-    const count = s.count_values ?? 0;
     let v;
-    if (count >= 11 && s.median != null) {
-        v = s.median;           // suficientes muestras → median
-    } else if (s.ema_value != null) {
-        v = s.ema_value;        // pocas muestras → ema_value
+    if (ALWAYS_EMA.has(key)) {
+        // MXN, BRL y CLA siempre usan ema_value
+        v = s.ema_value ?? s.median;
     } else {
-        v = s.median;           // fallback
+        const count = s.count_values ?? 0;
+        if (count >= 11 && s.median != null) {
+            v = s.median;           // suficientes muestras → median
+        } else if (s.ema_value != null) {
+            v = s.ema_value;        // pocas muestras → ema_value
+        } else {
+            v = s.median;           // fallback
+        }
     }
     if (v == null) return null;
     return dec === 0
@@ -196,7 +205,7 @@ function extractRatesFromNextData(html) {
     if (!stats) throw new Error("trmiExchange.data.api.statistics no encontrado");
     const rates = {};
     for (const d of DIVISAS) {
-        rates[d.key] = elToqueVal(stats[d.stat], d.dec);  // ✅ respeta decimales por divisa
+        rates[d.key] = elToqueVal(stats[d.stat], d.dec, d.key);  // ✅ respeta decimales por divisa
     }
     return rates;
 }

@@ -485,18 +485,65 @@ async function loadNews() {
     renderNoticiasList(validNews);
 }
 
-function renderNoticiasList(news) {
+let deleteModeActive = false;
+let selectedNewsIds = new Set();
+
+function renderNoticiasList(news, deleteMode = false) {
     if (!DOMElements.noticiasList) return;
     if (!news || news.length === 0) {
         DOMElements.noticiasList.innerHTML = `<div class="noticias-empty">😶 No hay noticias recientes.<br>Activa el modo edición para publicar.</div>`;
         return;
     }
     DOMElements.noticiasList.innerHTML = news.map(n => `
-        <div class="noticia-card">
-            <div class="noticia-texto">${linkify(n.text)}</div>
+        <div class="noticia-card${deleteMode ? ' selectable' + (selectedNewsIds.has(n.id) ? ' selected' : '') : ''}" ${deleteMode ? `data-id="${n.id}" onclick="toggleSelectNoticia('${n.id}')"` : ''}>
+            ${deleteMode ? `<div class="noticia-checkbox"></div>` : ''}
+            <div class="noticia-texto" style="${deleteMode ? 'padding-right:30px' : ''}">${linkify(n.text)}</div>
             <div class="noticia-meta">${timeAgo(n.timestamp).text}</div>
         </div>
     `).join('');
+
+    // Barra de confirmar/cancelar
+    const existingBar = document.getElementById('noticias-delete-bar');
+    if (existingBar) existingBar.remove();
+    if (deleteMode) {
+        const bar = document.createElement('div');
+        bar.id = 'noticias-delete-bar';
+        bar.className = 'noticias-delete-bar';
+        bar.innerHTML = `
+            <button class="btn-cancelar" onclick="cancelDeleteMode()">Cancelar</button>
+            <button class="btn-confirmar${selectedNewsIds.size > 0 ? ' activo' : ''}" id="btn-confirmar-borrar" onclick="confirmDeleteNews()">
+                🗑 Eliminar${selectedNewsIds.size > 0 ? ` (${selectedNewsIds.size})` : ''}
+            </button>`;
+        DOMElements.noticiasList.after(bar);
+    }
+}
+
+function toggleSelectNoticia(id) {
+    if (selectedNewsIds.has(id)) {
+        selectedNewsIds.delete(id);
+    } else {
+        selectedNewsIds.add(id);
+    }
+    renderNoticiasList(currentNews, true);
+}
+
+function cancelDeleteMode() {
+    deleteModeActive = false;
+    selectedNewsIds.clear();
+    renderNoticiasList(currentNews, false);
+    const bar = document.getElementById('noticias-delete-bar');
+    if (bar) bar.remove();
+}
+
+async function confirmDeleteNews() {
+    if (selectedNewsIds.size === 0) return;
+    const ids = [...selectedNewsIds];
+    for (const id of ids) {
+        await supabase.from('noticias').delete().eq('id', id);
+    }
+    deleteModeActive = false;
+    selectedNewsIds.clear();
+    loadNews();
 }
 
 async function addQuickNews() {
@@ -507,20 +554,17 @@ async function addQuickNews() {
 async function deleteNews() {
     if (!admin) return;
 
-    // Si currentNews esta vacio, consultar Supabase directamente (sin filtro de tiempo)
-    let newsToDelete = currentNews;
-    if (newsToDelete.length === 0) {
+    // Si currentNews esta vacio, recargar primero
+    if (currentNews.length === 0) {
         const { data, error } = await supabase.from('noticias').select('id, text, timestamp').order('timestamp', { ascending: false });
         if (error || !data || data.length === 0) return alert("No hay noticias.");
-        newsToDelete = data;
+        currentNews = data;
     }
 
-    const list = newsToDelete.map((n, i) => `${i + 1}. ${n.text}`).join("\n");
-    const idx = parseInt(prompt(`Eliminar numero:\n${list}`)) - 1;
-    if (newsToDelete[idx] && confirm("Eliminar?")) {
-        await supabase.from('noticias').delete().eq('id', newsToDelete[idx].id);
-        loadNews();
-    }
+    // Activar modo selección visual
+    deleteModeActive = true;
+    selectedNewsIds.clear();
+    renderNoticiasList(currentNews, true);
 }
 
 // ----------------------------------------------------

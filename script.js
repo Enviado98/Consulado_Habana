@@ -824,7 +824,7 @@ function renderStatusPanel(status) {
             <div class="status-item divisa"><span class="label">🇨🇦 CAD</span><span class="value">${status.cad_cup || '---'}</span></div>
             <div class="status-item divisa"><span class="label">🇲🇽 MXN</span><span class="value">${status.mxn_cup || '---'}</span></div>
             <div class="status-item divisa"><span class="label">🇧🇷 BRL</span><span class="value">${status.brl_cup || '---'}</span></div>
-            <div class="status-item divisa"><span class="label">💎 CLA</span><span class="value">${status.cla_cup || '---'}</span></div>
+            <div class="status-item divisa"><span class="label">🪪 CLA</span><span class="value">${status.cla_cup || '---'}</span></div>
         </div>`;
 }
 

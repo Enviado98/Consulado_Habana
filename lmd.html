@@ -248,42 +248,7 @@
 <!-- ══════════════════════════════
      MODAL RECORTE CAPTURA PAGO
 ══════════════════════════════ -->
-<div class="modal-overlay" id="modal-crop">
-  <div class="modal-sheet crop-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-head">
-      <h3>Recortar imagen</h3>
-      <button class="modal-close-btn" onclick="closeCropModal()"><span class="ico ico-close ico-sm ico-muted"></span></button>
-    </div>
-    <p style="font-size:.85rem;color:var(--t3);margin-bottom:14px">Ajusta el recuadro y toca <strong>Confirmar</strong> para enviar.</p>
-    <div class="crop-container">
-      <div class="crop-canvas-inner">
-        <canvas id="crop-canvas"></canvas>
-        <div class="crop-overlay">
-          <div class="crop-box" id="crop-box">
-            <div class="crop-handle" data-dir="nw"></div>
-            <div class="crop-handle" data-dir="n"></div>
-            <div class="crop-handle" data-dir="ne"></div>
-            <div class="crop-handle" data-dir="w"></div>
-            <div class="crop-handle" data-dir="e"></div>
-            <div class="crop-handle" data-dir="sw"></div>
-            <div class="crop-handle" data-dir="s"></div>
-            <div class="crop-handle" data-dir="se"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="crop-preview-wrap">
-      <canvas id="crop-preview" width="180" height="120"></canvas>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn btn-secondary" style="flex:1" onclick="closeCropModal()">Cancelar</button>
-      <button class="btn btn-primary" style="flex:2" onclick="confirmCrop()">
-        <span class="ico ico-check ico-sm ico-white"></span>&nbsp;Confirmar y enviar
-      </button>
-    </div>
-  </div>
-</div>
+
 
 <!-- ══════════════════════════════
      MODAL BORRAR CASOS (ADMIN)

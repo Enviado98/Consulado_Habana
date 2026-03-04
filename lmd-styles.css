@@ -842,66 +842,7 @@ textarea.form-input { resize:vertical; min-height:140px; line-height:1.6; }
   box-shadow:0 0 8px rgba(80,64,184,.4);
 }
 
-/* ════════════════════════════════════════
-   MODAL DE RECORTE (CROP)
-   ════════════════════════════════════════ */
-.crop-container {
-  position:relative; width:100%; background:#1a1a1a;
-  border-radius:var(--r); margin-bottom:20px;
-  /* overflow visible para que los handles de resize no queden cortados */
-  overflow:visible;
-}
-/* Wrapper interno que sí recorta el canvas pero no los handles */
-.crop-canvas-inner {
-  position:relative; overflow:hidden; border-radius:var(--r);
-}
-#crop-canvas {
-  display:block; width:100%; height:auto;
-  max-height:60vh; object-fit:contain;
-}
-.crop-overlay {
-  position:absolute; inset:0; pointer-events:none;
-  background:rgba(0,0,0,.5); border-radius:var(--r);
-}
-.crop-box {
-  position:absolute; pointer-events:all; cursor:move;
-  border:2px solid #fff;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.5);
-  box-sizing:border-box;
-}
-.crop-box::before {
-  content:''; position:absolute; inset:0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent calc(33.3% - 1px), rgba(255,255,255,.3) calc(33.3% - 1px), rgba(255,255,255,.3) 33.3%
-  ),
-  repeating-linear-gradient(
-    90deg, transparent, transparent calc(33.3% - 1px), rgba(255,255,255,.3) calc(33.3% - 1px), rgba(255,255,255,.3) 33.3%
-  );
-  pointer-events:none;
-}
-/* Handles de resize */
-.crop-handle {
-  position:absolute; width:18px; height:18px;
-  background:#fff; border-radius:3px; pointer-events:all;
-  box-shadow:0 1px 4px rgba(0,0,0,.4);
-}
-.crop-handle[data-dir=nw] { top:-9px; left:-9px; cursor:nw-resize; }
-.crop-handle[data-dir=ne] { top:-9px; right:-9px; cursor:ne-resize; }
-.crop-handle[data-dir=sw] { bottom:-9px; left:-9px; cursor:sw-resize; }
-.crop-handle[data-dir=se] { bottom:-9px; right:-9px; cursor:se-resize; }
-.crop-handle[data-dir=n]  { top:-9px; left:calc(50% - 9px); cursor:n-resize; }
-.crop-handle[data-dir=s]  { bottom:-9px; left:calc(50% - 9px); cursor:s-resize; }
-.crop-handle[data-dir=w]  { left:-9px; top:calc(50% - 9px); cursor:w-resize; }
-.crop-handle[data-dir=e]  { right:-9px; top:calc(50% - 9px); cursor:e-resize; }
 
-.crop-preview-wrap {
-  display:flex; justify-content:center; margin-bottom:4px;
-}
-#crop-preview {
-  border-radius:var(--r); box-shadow:var(--neu-out-sm);
-  border:1px solid var(--border); width:180px; height:auto;
-  max-height:120px; object-fit:contain;
-}
 
 /* ════════════════════════════════════════
    BORRAR CASOS — ADMIN

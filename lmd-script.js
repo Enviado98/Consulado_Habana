@@ -1086,6 +1086,10 @@ function initCrop(img) {
 
   const canvas = document.getElementById('crop-canvas');
   canvas.width = cW; canvas.height = cH;
+  // Fijar el tamaño CSS explícitamente igual al tamaño interno
+  // para evitar que el CSS (width:100%) escale el canvas y desajuste las coordenadas
+  canvas.style.width  = cW + 'px';
+  canvas.style.height = cH + 'px';
   canvas.getContext('2d').drawImage(img, 0, 0, cW, cH);
   _cropCanvas = canvas;
 
@@ -1136,7 +1140,10 @@ function setupCropDrag(box, canvas) {
     const r = canvas.getBoundingClientRect();
     const dx = (ex - r.left) - drag.startX;
     const dy = (ey - r.top)  - drag.startY;
-    const cW = _cropCanvas.width, cH = _cropCanvas.height;
+    // Usar el tamaño visual (CSS) del canvas como límite, no el tamaño interno en píxeles.
+    // De lo contrario, si el canvas está escalado por CSS, el box queda restringido
+    // a una fracción del área visible.
+    const cW = r.width, cH = r.height;
     let { l, t, w, h } = drag.orig;
 
     if (drag.handle === 'move') {

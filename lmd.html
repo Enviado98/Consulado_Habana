@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#e8e8ed">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>LMD · Revisión de Expedientes en PDF</title>
+<title>LMD · Revisión de Expedientes</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235040b8'/><text y='.9em' font-size='70' x='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Georgia,serif' font-style='italic'>L</text></svg>">
 <link rel="stylesheet" href="lmd-styles.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -47,7 +47,7 @@
       <div class="ob-logo">
         <div class="logo-icon">L</div>
         <h1>Revisión LMD</h1>
-        <p>Servicio de revisión de expedientes en PDF</p>
+        <p>Servicio de revisión de expedientes</p>
         <div class="trust-badges">
           <span class="trust-badge"><span class="ico ico-lock ico-sm ico-blue" style="vertical-align:middle"></span> Seguro</span>
           <span class="trust-badge"><span class="ico ico-shield ico-sm ico-green" style="vertical-align:middle"></span> Profesional</span>
@@ -63,7 +63,7 @@
       <!-- Paso 0: Bienvenida -->
       <div class="step-block active" id="sb0">
         <h2>Bienvenido al portal</h2>
-        <p>Envía tu expediente PDF y recibe una revisión profesional con todos los errores detectados. Fácil y seguro.</p>
+        <p>Envía tu expediente y recibe una revisión profesional con todos los errores detectados. Fácil y seguro.</p>
         <button class="btn btn-primary btn-full" onclick="nextStep()">Comenzar <span class="ico ico-arrow-right ico-sm ico-white" style="vertical-align:middle"></span></button>
       </div>
 
@@ -77,7 +77,7 @@
           </div>
           <div class="process-item">
             <div class="process-num">2</div>
-            <div><strong>Sube tu expediente PDF</strong><span>Cada revisión cuesta 250 CUP.</span></div>
+            <div><strong>Sube tus archivos</strong><span>Cada archivo cuesta 250 CUP.</span></div>
           </div>
           <div class="process-item">
             <div class="process-num">3</div>
@@ -365,6 +365,14 @@
       <span class="ico ico-arrow-right ico-sm ico-white"></span>
     </button>
   </div>
+</div>
+
+
+<!-- INDICADOR DE SCROLL -->
+<div class="scroll-hint" id="scroll-hint">
+  <svg class="scroll-hint-arrow" viewBox="0 0 24 24" fill="none" stroke="#5040b8" stroke-width="2">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
 </div>
 
 <script src="lmd-script.js"></script>

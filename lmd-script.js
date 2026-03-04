@@ -1915,3 +1915,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === this) closeAdminChatModal();
   });
 });
+
+// ── INDICADOR DE SCROLL ──────────────────────────────
+(function() {
+  const hint = document.getElementById('scroll-hint');
+  if (!hint) return;
+
+  // Mostrar solo cuando hay contenido suficiente para hacer scroll
+  function checkScrollNeeded() {
+    const scrollable = document.documentElement.scrollHeight > window.innerHeight + 40;
+    hint.style.display = scrollable ? '' : 'none';
+  }
+
+  // Ocultar al hacer scroll
+  let hideTimer;
+  window.addEventListener('scroll', () => {
+    hint.classList.add('hidden');
+    clearTimeout(hideTimer);
+    // Si vuelve arriba del todo, mostrar de nuevo
+    hideTimer = setTimeout(() => {
+      if (window.scrollY < 30) hint.classList.remove('hidden');
+    }, 800);
+  }, { passive: true });
+
+  // Comprobar al cargar y al cambiar tamaño
+  window.addEventListener('load', checkScrollNeeded);
+  window.addEventListener('resize', checkScrollNeeded);
+  checkScrollNeeded();
+})();

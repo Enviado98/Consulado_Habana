@@ -180,12 +180,12 @@ textarea.form-input { resize:vertical; min-height:140px; line-height:1.6; }
 /* ── PAGE ── */
 .page     { min-height:100vh; padding-top:58px; }
 .page-body {
-  max-width:620px; margin:0 auto; padding:32px 18px 80px;
+  max-width:620px; margin:0 auto; padding:32px 18px 160px;
 }
 .page-body.wide { max-width:860px; }
 
 /* ── ONBOARDING ── */
-.ob-wrap { max-width:460px; margin:0 auto; padding:48px 18px 60px; }
+.ob-wrap { max-width:460px; margin:0 auto; padding:48px 18px 140px; }
 .ob-logo { text-align:center; margin-bottom:36px; }
 .logo-icon {
   width:68px; height:68px; margin:0 auto 16px;
@@ -1133,3 +1133,26 @@ textarea.form-input { resize:vertical; min-height:140px; line-height:1.6; }
 .admin-chat-row-email { font-size:.9rem; font-weight:700; color:var(--t1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .admin-chat-row-preview { font-size:.8rem; color:var(--t3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .admin-chat-row-time { font-size:.72rem; color:var(--t4); flex-shrink:0; }
+
+/* ── INDICADOR DE SCROLL ── */
+.scroll-hint {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 600;
+  pointer-events: none;
+  transition: opacity .5s ease;
+}
+.scroll-hint.hidden { opacity: 0; }
+.scroll-hint-arrow {
+  width: 28px;
+  height: 28px;
+  display: block;
+  opacity: 0.28;
+  animation: bounceDown 1.2s ease infinite;
+}
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(6px); }
+}

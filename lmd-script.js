@@ -1074,8 +1074,15 @@ function initCrop(img) {
   _cropImg = img;
   const wrap = document.querySelector('.crop-canvas-inner');
   const maxW = Math.min(wrap.clientWidth || 340, 340);
-  const scale = maxW / img.width;
-  const cW = maxW, cH = Math.round(img.height * scale);
+
+  // Limitar la altura máxima del canvas a 55% del viewport
+  // para que el recuadro de recorte no quede fuera de pantalla
+  const maxH = Math.round(window.innerHeight * 0.55);
+  const scaleByW = maxW / img.width;
+  const scaleByH = maxH / img.height;
+  const scale = Math.min(scaleByW, scaleByH);
+  const cW = Math.round(img.width * scale);
+  const cH = Math.round(img.height * scale);
 
   const canvas = document.getElementById('crop-canvas');
   canvas.width = cW; canvas.height = cH;
@@ -1083,7 +1090,10 @@ function initCrop(img) {
   _cropCanvas = canvas;
 
   const box = document.getElementById('crop-box');
-  const bW = Math.round(cW * 0.85), bH = Math.round(cH * 0.85);
+  // El crop box inicial ocupa el 85% del ancho pero máximo 280px de alto
+  // para que siempre sea visible y manejable sin importar el tamaño de la imagen
+  const bW = Math.round(cW * 0.85);
+  const bH = Math.min(Math.round(cH * 0.85), 280);
   const bX = Math.round((cW - bW) / 2), bY = Math.round((cH - bH) / 2);
   _cropBox = { l: bX, t: bY, w: bW, h: bH };
   _applyCropBox(box);

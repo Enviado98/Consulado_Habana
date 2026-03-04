@@ -18,11 +18,7 @@ let pendingFiles    = [];
 let obStep          = 0;
 let todosCasos      = [];
 let casosParaBorrar = new Set();
-let cropFile        = null;
-let cropState       = null;
 let _adminCasos     = [];
-let _cropImg        = null;
-let _cropCanvas     = null;
 let _uploadAborted  = false;   // señal de cancelación
 let _activeXHR      = null;    // XHR activo para poder abortarlo
 
@@ -1043,188 +1039,19 @@ async function volverASubir() {
   }
 }
 
-// ── CROP DE CAPTURA DE PAGO ──────────────────────────
+// ── SUBIDA DIRECTA DE COMPROBANTE DE PAGO (sin recorte) ──────────────────────────
 function prevPago() {
   const file = document.getElementById('f-pago').files[0];
   if (!file) return;
-  cropFile = file;
-  openCropModal(file);
+  _subirCapturaPago(file);
 }
 
-function openCropModal(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => initCrop(img);
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-  document.getElementById('modal-crop').classList.add('active');
-}
-
-function closeCropModal() {
-  document.getElementById('modal-crop').classList.remove('active');
-  // Limpiar el input para que pueda volver a seleccionar
-  const inp = document.getElementById('f-pago');
-  if (inp) inp.value = '';
-  cropFile = null;
-}
-
-function initCrop(img) {
-  _cropImg = img;
-  const wrap = document.querySelector('.crop-canvas-inner');
-  const maxW = Math.min(wrap.clientWidth || 340, 340);
-
-  // Limitar la altura máxima del canvas a 55% del viewport
-  // para que el recuadro de recorte no quede fuera de pantalla
-  const maxH = Math.round(window.innerHeight * 0.55);
-  const scaleByW = maxW / img.width;
-  const scaleByH = maxH / img.height;
-  const scale = Math.min(scaleByW, scaleByH);
-  const cW = Math.round(img.width * scale);
-  const cH = Math.round(img.height * scale);
-
-  const canvas = document.getElementById('crop-canvas');
-  canvas.width = cW; canvas.height = cH;
-  // Fijar el tamaño CSS explícitamente igual al tamaño interno
-  // para evitar que el CSS (width:100%) escale el canvas y desajuste las coordenadas
-  canvas.style.width  = cW + 'px';
-  canvas.style.height = cH + 'px';
-  canvas.getContext('2d').drawImage(img, 0, 0, cW, cH);
-  _cropCanvas = canvas;
-
-  const box = document.getElementById('crop-box');
-  // El crop box inicial ocupa el 85% del ancho pero máximo 280px de alto
-  // para que siempre sea visible y manejable sin importar el tamaño de la imagen
-  const bW = Math.round(cW * 0.85);
-  const bH = Math.min(Math.round(cH * 0.85), 280);
-  const bX = Math.round((cW - bW) / 2), bY = Math.round((cH - bH) / 2);
-  _cropBox = { l: bX, t: bY, w: bW, h: bH };
-  _applyCropBox(box);
-
-  setupCropDrag(box, canvas);
-}
-
-// Estado del crop como objeto para evitar parseInt() en cada frame
-let _cropBox = { l: 0, t: 0, w: 0, h: 0 };
-let _rafPending = false;
-
-function _applyCropBox(box) {
-  const { l, t, w, h } = _cropBox;
-  box.style.left   = l + 'px';
-  box.style.top    = t + 'px';
-  box.style.width  = w + 'px';
-  box.style.height = h + 'px';
-}
-
-function setupCropDrag(box, canvas) {
-  // Limpiar listeners anteriores clonando el nodo
-  const newBox = box.cloneNode(true);
-  box.parentNode.replaceChild(newBox, box);
-  box = newBox;
-
-  let drag = null;
-
-  const onStart = (ex, ey, handle) => {
-    const r = canvas.getBoundingClientRect();
-    drag = {
-      handle,
-      startX: ex - r.left, startY: ey - r.top,
-      orig: { ..._cropBox }
-    };
-    box.setPointerCapture && box.setPointerCapture(drag.pointerId);
-  };
-
-  const onMove = (ex, ey) => {
-    if (!drag) return;
-    const r = canvas.getBoundingClientRect();
-    const dx = (ex - r.left) - drag.startX;
-    const dy = (ey - r.top)  - drag.startY;
-    // Usar el tamaño visual (CSS) del canvas como límite, no el tamaño interno en píxeles.
-    // De lo contrario, si el canvas está escalado por CSS, el box queda restringido
-    // a una fracción del área visible.
-    const cW = r.width, cH = r.height;
-    let { l, t, w, h } = drag.orig;
-
-    if (drag.handle === 'move') {
-      l = Math.max(0, Math.min(l + dx, cW - w));
-      t = Math.max(0, Math.min(t + dy, cH - h));
-    } else {
-      const d = drag.handle;
-      if (d.includes('e')) w = Math.max(60, Math.min(l + w + dx, cW) - l);
-      if (d.includes('s')) h = Math.max(60, Math.min(t + h + dy, cH) - t);
-      if (d.includes('w')) { const nl = Math.max(0, Math.min(l+dx, l+w-60)); w += l-nl; l = nl; }
-      if (d.includes('n')) { const nt = Math.max(0, Math.min(t+dy, t+h-60)); h += t-nt; t = nt; }
-    }
-    _cropBox = { l, t, w, h };
-
-    // Throttle DOM updates con rAF — solo 1 repaint por frame
-    if (!_rafPending) {
-      _rafPending = true;
-      requestAnimationFrame(() => {
-        _applyCropBox(box);
-        _rafPending = false;
-      });
-    }
-  };
-
-  const onEnd = () => { drag = null; };
-
-  // Pointer Events — única API para mouse, touch y stylus
-  box.addEventListener('pointerdown', e => {
-    e.stopPropagation();
-    drag = null;
-    onStart(e.clientX, e.clientY, 'move');
-    drag.pointerId = e.pointerId;
-    box.setPointerCapture(e.pointerId);
-  });
-
-  box.querySelectorAll('.crop-handle').forEach(h => {
-    h.addEventListener('pointerdown', e => {
-      e.stopPropagation();
-      onStart(e.clientX, e.clientY, h.dataset.dir);
-      if (drag) { drag.pointerId = e.pointerId; h.setPointerCapture(e.pointerId); }
-    });
-    h.addEventListener('pointermove', e => onMove(e.clientX, e.clientY));
-    h.addEventListener('pointerup',   onEnd);
-  });
-
-  box.addEventListener('pointermove', e => onMove(e.clientX, e.clientY));
-  box.addEventListener('pointerup',   onEnd);
-}
-
-function updateCropPreview() { /* eliminada — usamos _cropBox directamente */ }
-
-async function confirmCrop() {
-  if (!_cropImg || !_cropCanvas) return;
-  const { l, t, w, h } = _cropBox;
-  const scaleX = _cropImg.width  / _cropCanvas.width;
-  const scaleY = _cropImg.height / _cropCanvas.height;
-
-  const out = document.createElement('canvas');
-  out.width  = Math.round(w * scaleX);
-  out.height = Math.round(h * scaleY);
-  out.getContext('2d').drawImage(
-    _cropImg,
-    Math.round(l * scaleX), Math.round(t * scaleY),
-    out.width, out.height,
-    0, 0, out.width, out.height
-  );
-
-  document.getElementById('modal-crop').classList.remove('active');
-  out.toBlob(async blob => {
-    if (!blob) return showAlert('alert-dash','error','Error al procesar la imagen');
-    await _subirCapturaPago(blob);
-  }, 'image/jpeg', 0.92);
-}
-
-async function _subirCapturaPago(blob) {
+async function _subirCapturaPago(file) {
   const wrap = document.getElementById('pago-progress-wrap');
   const bar  = document.getElementById('pago-progress-bar');
   const lbl  = document.getElementById('pago-progress-label');
   if (wrap) { wrap.style.display = ''; bar.style.width = '0%'; lbl.textContent = 'Subiendo comprobante...'; }
 
-  // Token de sesión del usuario (no el anon key)
   const { data: { session } } = await sb.auth.getSession();
   const token = session?.access_token;
   if (!token) {
@@ -1232,13 +1059,14 @@ async function _subirCapturaPago(blob) {
     return showAlert('alert-dash', 'error', 'Sin sesión activa. Por favor recarga la página.');
   }
 
-  const fname = cropFile ? cropFile.name.replace(/\.[^.]+$/, '') + '_recortado.jpg' : `pago_${Date.now()}.jpg`;
-  const path  = `${currentUser.id}/pago_${Date.now()}_${fname}`;
+  const ext   = file.name.split('.').pop() || 'jpg';
+  const fname = file.name.replace(/\.[^.]+$/, '');
+  const path  = `${currentUser.id}/pago_${Date.now()}_${fname}.${ext}`;
 
   const xhr = new XMLHttpRequest();
   xhr.open('POST', `${SUPABASE_URL}/storage/v1/object/pagos/${path}`);
   xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-  xhr.setRequestHeader('Content-Type', 'image/jpeg');
+  xhr.setRequestHeader('Content-Type', file.type || 'image/jpeg');
   xhr.setRequestHeader('x-upsert', 'false');
 
   xhr.upload.onprogress = e => {
@@ -1261,7 +1089,6 @@ async function _subirCapturaPago(blob) {
       captura_pago_url: path,
       updated_at:       new Date().toISOString()
     }).eq('id', currentCaso.id);
-    cropFile = null;
     await loadCaso();
   };
   xhr.onerror = () => {
@@ -1269,15 +1096,13 @@ async function _subirCapturaPago(blob) {
     showAlert('alert-dash', 'error', 'Error de red al subir el comprobante');
   };
 
-  // Enviar el blob directamente, NO como FormData
-  xhr.send(blob);
+  xhr.send(file);
 }
 
 async function enviarPago() {
-  // Compatibilidad: si hay archivo seleccionado sin crop, usar crop directamente
   const file = document.getElementById('f-pago')?.files[0];
-  if (file) { cropFile = file; openCropModal(file); }
-  else showAlert('alert-dash','error','Selecciona primero la captura del pago');
+  if (file) _subirCapturaPago(file);
+  else showAlert('alert-dash', 'error', 'Selecciona primero la captura del pago');
 }
 
 async function startNewCase() {
@@ -1627,9 +1452,6 @@ document.getElementById('modal-admin').addEventListener('click', function(e) {
 });
 document.getElementById('modal-delete').addEventListener('click', function(e) {
   if (e.target === this) closeDeleteModal();
-});
-document.getElementById('modal-crop').addEventListener('click', function(e) {
-  if (e.target === this) closeCropModal();
 });
 
 init();

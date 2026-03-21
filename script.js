@@ -78,26 +78,71 @@ const DOMElements = {
 // ── NAVEGACIÓN POR TABS ───────────────────────────────────────
 function initTabs() {
     const tabBtns = document.querySelectorAll('.tab-btn');
+    const FULLSCREEN_TABS = new Set(['view-chat', 'view-expertos']);
+    let currentTab = 'view-calendario';
+
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const target = btn.dataset.tab;
+            if (target === currentTab) return;
+
+            const skipAnim = FULLSCREEN_TABS.has(target) && FULLSCREEN_TABS.has(currentTab);
+
+            // Actualizar botones activos
             tabBtns.forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
             btn.classList.add('active');
 
-            const isLMD = target === 'view-lmd';
-            const lmdView = document.getElementById('view-lmd');
+            if (skipAnim) {
+                // SWAP INSTANTÁNEO: sin animaciones, sin transiciones del panel
+                // 1. Congelar todas las transiciones relevantes en este frame
+                document.body.classList.add('no-panel-anim');
 
-            if (isLMD) {
-                if (lmdView) lmdView.classList.add('active');
-                document.body.classList.add('lmd-active');
-                document.body.classList.remove('chat-active');
-            } else {
-                if (lmdView) lmdView.classList.remove('active');
-                document.body.classList.remove('lmd-active');
-                document.getElementById(target).classList.add('active');
+                // 2. Ocultar todas las vistas sin animación
+                document.querySelectorAll('.tab-view').forEach(v => {
+                    v.classList.remove('active');
+                    v.classList.remove('no-anim');
+                });
+
+                // 3. Mostrar la nueva vista sin animación
+                const targetEl = target === 'view-expertos'
+                    ? document.getElementById('view-expertos')
+                    : document.getElementById(target);
+                if (targetEl) {
+                    targetEl.classList.add('no-anim');
+                    targetEl.classList.add('active');
+                }
+
+                // 4. Actualizar chat-active sin transición
                 document.body.classList.toggle('chat-active', target === 'view-chat');
+
+                // 5. Restaurar transiciones después de que el navegador pintó el frame final
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    document.body.classList.remove('no-panel-anim');
+                }));
+
+            } else {
+                // CAMBIO NORMAL con animaciones
+                document.querySelectorAll('.tab-view').forEach(v => {
+                    v.classList.remove('active');
+                    v.classList.remove('no-anim');
+                });
+
+                const isExpertos = target === 'view-expertos';
+                const expertosView = document.getElementById('view-expertos');
+
+                if (isExpertos) {
+                    if (expertosView) expertosView.classList.add('active');
+                    document.body.classList.remove('chat-active');
+                } else {
+                    if (expertosView) expertosView.classList.remove('active');
+                    const targetEl = document.getElementById(target);
+                    if (targetEl) targetEl.classList.add('active');
+                    document.body.classList.toggle('chat-active', target === 'view-chat');
+                }
             }
+
+            currentTab = target;
+            document.body.classList.add('tabs-ready');
         });
     });
 }
@@ -908,10 +953,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+function renderCardSkeletons(count = 8) {
+    const skeletonHTML = Array.from({ length: count }, () => `
+        <div class="card-skeleton">
+            <div class="sk-emoji skeleton"></div>
+            <div class="sk-title skeleton"></div>
+            <div class="sk-line skeleton"></div>
+            <div class="sk-line short skeleton"></div>
+        </div>`).join('');
+    DOMElements.contenedor.innerHTML = skeletonHTML;
+}
+
 async function loadData() {
+    renderCardSkeletons(8);
     const { data } = await supabase.from('items').select('*').order('id');
     if (data) {
         currentData = data; DOMElements.contenedor.innerHTML = data.map((item, i) => createCardHTML(item, i)).join('');
         document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
     }
-            }
+}

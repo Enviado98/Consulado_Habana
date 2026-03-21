@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Admin · Gestores · ConsulHabana</title>
+<link rel="icon" type="image/png" sizes="96x96" href="https://raw.githubusercontent.com/Enviado98/Consulado_Habana/main/images.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap');
+
+:root {
+  --bg:      #e8e8ed;
+  --bg-card: #eaeaf0;
+  --neu-out: 6px 6px 14px rgba(0,0,0,0.13), -4px -4px 10px rgba(255,255,255,0.85);
+  --neu-out-sm: 3px 3px 8px rgba(0,0,0,0.11), -2px -2px 6px rgba(255,255,255,0.80);
+  --neu-in:  inset 3px 3px 8px rgba(0,0,0,0.12), inset -3px -3px 8px rgba(255,255,255,0.75);
+  --t1: #1c1c1e; --t2: #3a3a3c; --t3: #8e8e93; --t4: #aeaeb2;
+  --green: #30b855; --green-bg: rgba(48,184,85,0.12);
+  --red: #e03030;   --red-bg: rgba(224,48,48,0.10);
+  --blue: #2060c8;  --blue-bg: rgba(32,96,200,0.10);
+  --violet: #5040b8; --violet-bg: rgba(80,64,184,0.10);
+  --f: 'DM Sans', -apple-system, sans-serif;
+  --f-serif: 'DM Serif Display', Georgia, serif;
+  --r: 14px; --r2: 20px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--f); background: var(--bg); color: var(--t1);
+  min-height: 100vh; -webkit-font-smoothing: antialiased;
+}
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── LOGIN ── */
+#view-login {
+  min-height: 100vh;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 24px;
+}
+#view-login.active { display: flex; }
+
+.login-card {
+  width: 100%; max-width: 360px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.65);
+  box-shadow: var(--neu-out);
+  border-radius: 26px;
+  padding: 32px 28px 28px;
+}
+.login-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px;
+}
+.login-logo-icon {
+  width: 42px; height: 42px;
+  background: var(--violet-bg);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--violet);
+}
+.login-logo-text { font-family: var(--f-serif); font-size: 1.1rem; color: var(--t1); }
+.login-logo-sub   { font-size: 0.65rem; color: var(--t3); }
+
+.login-title { font-size: 1.3rem; font-weight: 700; color: var(--t1); margin-bottom: 6px; letter-spacing: -0.02em; }
+.login-sub   { font-size: 0.78rem; color: var(--t3); margin-bottom: 24px; }
+
+.field { margin-bottom: 14px; }
+.field label { font-size: 0.68rem; font-weight: 700; color: var(--t3); letter-spacing: 0.06em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+.field input {
+  width: 100%; padding: 12px 14px;
+  background: var(--bg); border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: var(--neu-in);
+  border-radius: 12px; font-family: var(--f); font-size: 0.88rem; color: var(--t1);
+  outline: none;
+}
+.field input:focus { box-shadow: var(--neu-in), 0 0 0 2px rgba(80,64,184,0.2); }
+
+.btn-primary {
+  width: 100%; padding: 14px;
+  background: var(--violet); color: #fff;
+  font-family: var(--f); font-size: 0.9rem; font-weight: 700;
+  border: none; cursor: pointer;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(80,64,184,0.35);
+  transition: transform 0.15s;
+  margin-top: 6px;
+}
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary:disabled { opacity: 0.6; cursor: default; }
+
+.alert-error {
+  background: var(--red-bg); color: var(--red);
+  font-size: 0.75rem; font-weight: 600;
+  padding: 10px 14px; border-radius: 10px;
+  margin-top: 12px; display: none;
+}
+.alert-error.show { display: block; }
+
+/* ── DASHBOARD ── */
+#view-dash { padding: 0 0 40px; }
+
+/* Header */
+.adm-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid rgba(255,255,255,0.5);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.adm-header-left {}
+.adm-header-title { font-size: 0.95rem; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }
+.adm-header-sub   { font-size: 0.65rem; color: var(--t3); margin-top: 1px; }
+.adm-logout {
+  font-size: 0.68rem; font-weight: 700; color: var(--t3);
+  background: var(--bg); box-shadow: var(--neu-out-sm);
+  border: none; cursor: pointer; padding: 6px 14px; border-radius: 20px;
+  font-family: var(--f);
+  transition: color 0.15s;
+}
+.adm-logout:hover { color: var(--red); }
+
+/* Tabs */
+.adm-tabs {
+  display: flex; gap: 8px;
+  padding: 16px 16px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+}
+.adm-tab {
+  font-size: 0.75rem; font-weight: 700; color: var(--t3);
+  background: none; border: none; cursor: pointer;
+  padding: 8px 14px 10px;
+  border-bottom: 2px solid transparent;
+  font-family: var(--f);
+  transition: color 0.15s, border-color 0.15s;
+}
+.adm-tab.active { color: var(--violet); border-color: var(--violet); }
+.adm-tab-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px;
+  background: var(--red); color: #fff;
+  font-size: 0.58rem; font-weight: 800;
+  border-radius: 50%; margin-left: 5px;
+}
+
+/* Cards grid */
+.adm-grid {
+  padding: 0 16px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.adm-empty {
+  text-align: center; padding: 48px 20px;
+  color: var(--t3); font-size: 0.82rem;
+}
+.adm-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+/* Solicitud card */
+.sol-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: var(--neu-out);
+  border-radius: 20px;
+  overflow: hidden;
+  animation: cardIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(14px) scale(0.97); }
+  to   { opacity:1; transform:none; }
+}
+.sol-card-top {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.sol-avatar {
+  width: 56px; height: 56px; flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--bg); box-shadow: var(--neu-out-sm);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--t3); font-size: 1.5rem;
+}
+.sol-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.sol-info { flex: 1; min-width: 0; }
+.sol-name { font-size: 0.95rem; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }
+.sol-rol  { font-size: 0.68rem; color: var(--t3); margin-top: 2px; }
+.sol-wa   { font-size: 0.68rem; color: var(--blue); margin-top: 3px; font-weight: 500; }
+.sol-date { font-size: 0.6rem; color: var(--t4); margin-top: 4px; }
+.sol-status {
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.06em;
+  padding: 3px 9px; border-radius: 20px; text-transform: uppercase;
+  flex-shrink: 0;
+}
+.sol-status.pendiente { color: #b06000; background: rgba(176,96,0,0.10); }
+.sol-status.aprobado  { color: var(--green); background: var(--green-bg); }
+.sol-status.rechazado { color: var(--red); background: var(--red-bg); }
+
+.sol-desc {
+  padding: 12px 16px;
+  font-size: 0.78rem; color: var(--t2); line-height: 1.55;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.sol-actions {
+  display: flex; gap: 10px;
+  padding: 12px 16px;
+}
+.sol-btn {
+  flex: 1; padding: 11px;
+  font-family: var(--f); font-size: 0.82rem; font-weight: 700;
+  border: none; cursor: pointer; border-radius: 12px;
+  transition: transform 0.12s;
+}
+.sol-btn:active { transform: scale(0.97); }
+.sol-btn.aprobar {
+  background: var(--green); color: #fff;
+  box-shadow: 0 3px 10px rgba(48,184,85,0.3);
+}
+.sol-btn.rechazar {
+  background: var(--bg); color: var(--red);
+  box-shadow: var(--neu-out-sm);
+}
+.sol-btn.editar {
+  background: var(--violet); color: #fff;
+  box-shadow: 0 3px 10px rgba(80,64,184,0.28);
+}
+.sol-btn.eliminar {
+  background: var(--bg); color: var(--red);
+  box-shadow: var(--neu-out-sm);
+  flex: 0 0 auto; width: 44px; padding: 11px 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.sol-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ── MODAL EDICIÓN ── */
+#edit-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none; align-items: flex-end; justify-content: center;
+}
+#edit-overlay.active { display: flex; }
+
+#edit-sheet {
+  width: 100%; max-width: 540px;
+  background: var(--bg);
+  border-radius: 26px 26px 0 0;
+  border: 1px solid rgba(255,255,255,0.7);
+  border-bottom: none;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.18);
+  max-height: 93vh; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: sheetUp 0.38s cubic-bezier(0.32,0.72,0,1) both;
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.edit-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px;
+  position: sticky; top: 0; background: var(--bg); z-index: 2;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.edit-title { font-size: 1rem; font-weight: 700; color: var(--t1); letter-spacing: -0.02em; }
+.edit-sub   { font-size: 0.67rem; color: var(--t3); margin-top: 2px; }
+#edit-close {
+  width: 32px; height: 32px;
+  background: var(--bg-card); border: none; cursor: pointer;
+  border-radius: 50%; box-shadow: var(--neu-out-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--t3); flex-shrink: 0;
+}
+#edit-close:active { box-shadow: var(--neu-in); }
+
+#edit-body { padding: 20px 20px 36px; }
+
+.edit-section-label {
+  font-size: 0.58rem; font-weight: 800; color: var(--t4);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin: 18px 0 10px;
+}
+.edit-section-label:first-child { margin-top: 0; }
+
+.ef { margin-bottom: 13px; }
+.ef label {
+  font-size: 0.62rem; font-weight: 700; color: var(--t3);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  display: block; margin-bottom: 5px;
+}
+.ef input, .ef textarea {
+  width: 100%; padding: 11px 13px;
+  background: var(--bg); border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: var(--neu-in); border-radius: 11px;
+  font-family: var(--f); font-size: 0.85rem; color: var(--t1); outline: none;
+}
+.ef textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
+.ef input:focus, .ef textarea:focus {
+  box-shadow: var(--neu-in), 0 0 0 2.5px rgba(80,64,184,0.22);
+}
+.ef-row { display: flex; gap: 10px; }
+.ef-row .ef { flex: 1; }
+
+/* Imagen en edición */
+.edit-img-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px;
+  background: var(--bg); box-shadow: var(--neu-in);
+  border-radius: 12px; margin-bottom: 13px;
+}
+.edit-img-current {
+  width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;
+  object-fit: cover; border: 2px solid rgba(80,64,184,0.2);
+  background: var(--bg-card);
+}
+.edit-img-current.no-img {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+}
+.edit-img-info { flex: 1; min-width: 0; }
+.edit-img-info p { font-size: 0.7rem; color: var(--t3); line-height: 1.45; }
+.edit-img-info strong { color: var(--green); }
+.edit-img-btn {
+  font-size: 0.72rem; font-weight: 700; color: var(--violet);
+  background: var(--bg-card); border: none; cursor: pointer;
+  padding: 7px 13px; border-radius: 10px;
+  box-shadow: var(--neu-out-sm); font-family: var(--f);
+  white-space: nowrap; flex-shrink: 0;
+}
+#edit-img-input { display: none; }
+
+/* Botones footer */
+.edit-footer {
+  display: flex; gap: 10px; margin-top: 22px;
+}
+#edit-save-btn {
+  flex: 1; padding: 14px;
+  background: var(--violet); color: #fff;
+  font-family: var(--f); font-size: 0.9rem; font-weight: 700;
+  border: none; cursor: pointer; border-radius: 13px;
+  box-shadow: 0 4px 16px rgba(80,64,184,0.32);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: transform 0.15s;
+}
+#edit-save-btn:active { transform: scale(0.97); }
+#edit-save-btn:disabled { opacity: 0.55; cursor: default; }
+#edit-cancel-btn {
+  flex-shrink: 0; width: 46px; height: 46px;
+  background: var(--bg); box-shadow: var(--neu-out-sm);
+  border: none; cursor: pointer; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--t3);
+}
+#edit-cancel-btn:active { box-shadow: var(--neu-in); }
+.edit-status { font-size: 0.74rem; margin-top: 8px; font-weight: 600; color: var(--red); }
+
+/* ── Confirm dialog overlay ── */
+#confirm-overlay {
+  position: fixed; inset: 0; z-index: 19999;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center; padding: 24px;
+}
+#confirm-overlay.active { display: flex; }
+.confirm-card {
+  width: 100%; max-width: 320px;
+  background: var(--bg);
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.65);
+  box-shadow: var(--neu-out);
+  padding: 28px 24px 22px;
+  text-align: center;
+  animation: popIn 0.32s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.confirm-icon {
+  width: 52px; height: 52px; margin: 0 auto 14px;
+  background: var(--red-bg); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--red); font-size: 1.4rem;
+  box-shadow: var(--neu-out-sm);
+}
+.confirm-title { font-size: 1rem; font-weight: 700; color: var(--t1); margin-bottom: 7px; }
+.confirm-sub   { font-size: 0.76rem; color: var(--t3); line-height: 1.5; margin-bottom: 22px; }
+.confirm-btns  { display: flex; gap: 10px; }
+.confirm-btn-cancel {
+  flex: 1; padding: 12px;
+  background: var(--bg); box-shadow: var(--neu-out-sm);
+  border: none; cursor: pointer; border-radius: 12px;
+  font-family: var(--f); font-size: 0.84rem; font-weight: 600; color: var(--t2);
+}
+.confirm-btn-delete {
+  flex: 1; padding: 12px;
+  background: var(--red); color: #fff;
+  border: none; cursor: pointer; border-radius: 12px;
+  font-family: var(--f); font-size: 0.84rem; font-weight: 700;
+  box-shadow: 0 3px 12px rgba(224,48,48,0.3);
+}
+
+/* Loading spinner */
+.spinner-wrap { display: flex; justify-content: center; padding: 40px; }
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid rgba(80,64,184,0.15);
+  border-top-color: var(--violet);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+  background: var(--t1); color: #fff;
+  font-size: 0.8rem; font-weight: 600;
+  padding: 10px 20px; border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+  opacity: 0; pointer-events: none; z-index: 999; white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#toast.success { background: #30b855; }
+#toast.error   { background: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="view-login" class="view active">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="login-logo-text">ConsulHabana</div>
+        <div class="login-logo-sub">Panel de administración</div>
+      </div>
+    </div>
+    <div class="login-title">Bienvenido</div>
+    <div class="login-sub">Accede con tu cuenta de administrador para gestionar los perfiles.</div>
+
+    <div class="field">
+      <label>Correo electrónico</label>
+      <input type="email" id="adm-email" placeholder="admin@correo.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="adm-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" id="adm-login-btn" onclick="doAdminLogin()">Entrar</button>
+    <div class="alert-error" id="adm-login-err"></div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="view-dash" class="view">
+
+  <div class="adm-header">
+    <div class="adm-header-left">
+      <div class="adm-header-title">Gestores · Admin</div>
+      <div class="adm-header-sub" id="adm-user-label">ConsulHabana</div>
+    </div>
+    <button class="adm-logout" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+
+  <div class="adm-tabs">
+    <button class="adm-tab active" data-tab="pendiente" onclick="switchTab('pendiente', this)">
+      Pendientes <span class="adm-tab-badge" id="badge-pendiente" style="display:none"></span>
+    </button>
+    <button class="adm-tab" data-tab="aprobado" onclick="switchTab('aprobado', this)">Aprobados</button>
+    <button class="adm-tab" data-tab="rechazado" onclick="switchTab('rechazado', this)">Rechazados</button>
+  </div>
+
+  <div class="adm-grid" id="adm-grid">
+    <div class="spinner-wrap"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══ MODAL EDICIÓN ══ -->
+<div id="edit-overlay">
+  <div id="edit-sheet">
+    <div class="edit-header">
+      <div>
+        <div class="edit-title">Editar perfil</div>
+        <div class="edit-sub" id="edit-sheet-sub">Modifica los datos del gestor</div>
+      </div>
+      <button id="edit-close" aria-label="Cerrar">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+          <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="edit-body">
+      <div class="edit-section-label">Información del perfil</div>
+
+      <div class="ef">
+        <label>Nombre completo *</label>
+        <input type="text" id="ef-nombre" maxlength="80" autocomplete="off">
+      </div>
+      <div class="ef">
+        <label>Especialidad / Cargo</label>
+        <input type="text" id="ef-rol" maxlength="80" autocomplete="off">
+      </div>
+      <div class="ef">
+        <label>Descripción de servicios *</label>
+        <textarea id="ef-desc" maxlength="400"></textarea>
+      </div>
+
+      <div class="edit-section-label">Contacto</div>
+
+      <div class="ef">
+        <label>WhatsApp *</label>
+        <input type="tel" id="ef-wa" maxlength="20" autocomplete="off">
+      </div>
+      <div class="ef">
+        <label>Correo electrónico</label>
+        <input type="email" id="ef-email" maxlength="100" autocomplete="off">
+      </div>
+      <div class="ef-row">
+        <div class="ef">
+          <label>Provincia / Ciudad</label>
+          <input type="text" id="ef-provincia" maxlength="60" autocomplete="off">
+        </div>
+        <div class="ef">
+          <label>País</label>
+          <input type="text" id="ef-pais" maxlength="60" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="edit-section-label">Imagen de perfil</div>
+
+      <div class="edit-img-row" id="edit-img-row">
+        <div class="edit-img-current no-img" id="edit-img-current">👤</div>
+        <div class="edit-img-info">
+          <p id="edit-img-status">Sin imagen subida</p>
+        </div>
+        <button class="edit-img-btn" type="button" onclick="document.getElementById('edit-img-input').click()">
+          Cambiar
+        </button>
+        <input type="file" id="edit-img-input" accept="image/*">
+      </div>
+
+      <div class="edit-footer">
+        <button id="edit-cancel-btn" type="button" aria-label="Cancelar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button id="edit-save-btn" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          Guardar cambios
+        </button>
+      </div>
+      <div class="edit-status" id="edit-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM ELIMINAR ══ -->
+<div id="confirm-overlay">
+  <div class="confirm-card">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Eliminar perfil</div>
+    <div class="confirm-sub" id="confirm-sub">¿Seguro que quieres eliminar este perfil? Esta acción no se puede deshacer.</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn-cancel" onclick="closeConfirm()">Cancelar</button>
+      <button class="confirm-btn-delete" id="confirm-delete-btn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://fgxhubohavfvhadqzwbe.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZneGh1Ym9oYXZmdmhhZHF6d2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NjU2NzQsImV4cCI6MjA4ODE0MTY3NH0.Pu_rV5UU2Do2dcsT71Gi1aBhmlmD5JQUkB3ZYQyZplo';
+const ADMIN_UID     = 'bb94ddcc-758a-4c63-83da-f06e4880ff29';
+
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentTab = 'pendiente';
+
+// ── Auth ────────────────────────────────────────────────────────────
+async function doAdminLogin() {
+  const email = document.getElementById('adm-email').value.trim();
+  const pass  = document.getElementById('adm-pass').value;
+  const err   = document.getElementById('adm-login-err');
+  const btn   = document.getElementById('adm-login-btn');
+  err.classList.remove('show');
+  if (!email || !pass) { err.textContent = 'Completa los dos campos.'; err.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error || data.user?.id !== ADMIN_UID) {
+    err.textContent = 'Acceso denegado. Solo el administrador puede entrar.';
+    err.classList.add('show');
+    btn.disabled = false; btn.textContent = 'Entrar';
+    await sb.auth.signOut();
+    return;
+  }
+  document.getElementById('adm-user-label').textContent = data.user.email;
+  showView('view-dash');
+  loadTab('pendiente');
+  updatePendingBadge();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  showView('view-login');
+}
+
+// Auto-restore session
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user?.id === ADMIN_UID) {
+    document.getElementById('adm-user-label').textContent = session.user.email;
+    showView('view-dash');
+    loadTab('pendiente');
+    updatePendingBadge();
+  }
+  // Enter key on password
+  document.getElementById('adm-pass')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doAdminLogin();
+  });
+});
+
+// ── Views ───────────────────────────────────────────────────────────
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Tabs ────────────────────────────────────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.adm-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  loadTab(tab);
+}
+
+async function loadTab(tab) {
+  currentTab = tab;
+  const grid = document.getElementById('adm-grid');
+  grid.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div></div>`;
+
+  const { data, error } = await sb
+    .from('gestores').select('*')
+    .eq('estado', tab)
+    .order('created_at', { ascending: false });
+
+  grid.innerHTML = '';
+
+  if (error || !data || data.length === 0) {
+    grid.innerHTML = `<div class="adm-empty">
+      <div class="adm-empty-icon">${tab === 'pendiente' ? '📭' : tab === 'aprobado' ? '✅' : '🗑️'}</div>
+      No hay solicitudes ${tab === 'pendiente' ? 'pendientes' : tab === 'aprobado' ? 'aprobadas' : 'rechazadas'}.
+    </div>`;
+    return;
+  }
+
+  data.forEach(g => grid.appendChild(buildSolCard(g)));
+}
+
+async function updatePendingBadge() {
+  const { count } = await sb.from('gestores').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente');
+  const badge = document.getElementById('badge-pendiente');
+  if (count > 0) { badge.textContent = count; badge.style.display = 'inline-flex'; }
+  else { badge.style.display = 'none'; }
+}
+
+// ── Build solicitud card ─────────────────────────────────────────────
+function buildSolCard(g) {
+  const card = document.createElement('div');
+  card.className = 'sol-card';
+  card.id = `sol-${g.id}`;
+
+  const logoHtml = g.logo_url
+    ? `<img src="${g.logo_url}" alt="${g.nombre}">`
+    : `👤`;
+
+  const fecha = new Date(g.created_at).toLocaleDateString('es-ES', { day:'2-digit', month:'long', year:'numeric' });
+
+  // Info extra (nuevos campos)
+  const extraInfo = [g.provincia, g.pais].filter(Boolean).join(', ');
+  const emailLine = g.email ? `<div class="sol-wa" style="color:var(--t3)">${g.email}</div>` : '';
+  const locationLine = extraInfo ? `<div class="sol-date" style="font-size:0.62rem;color:var(--t3);margin-top:2px">📍 ${extraInfo}</div>` : '';
+
+  // Botones según estado
+  let actionsHtml = '';
+  if (g.estado === 'pendiente') {
+    actionsHtml = `
+    <div class="sol-actions">
+      <button class="sol-btn aprobar" onclick="aprobar('${g.id}')">✓ Aprobar</button>
+      <button class="sol-btn rechazar" onclick="rechazar('${g.id}')">✗ Rechazar</button>
+    </div>`;
+  } else if (g.estado === 'aprobado') {
+    actionsHtml = `
+    <div class="sol-actions">
+      <button class="sol-btn editar" onclick="abrirEditar('${g.id}')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:5px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar perfil
+      </button>
+      <button class="sol-btn eliminar" title="Eliminar" onclick="pedirConfirmacion('${g.id}', '${(g.nombre||'').replace(/'/g,"\\'")}')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>`;
+  }
+
+  card.innerHTML = `
+    <div class="sol-card-top">
+      <div class="sol-avatar">${logoHtml}</div>
+      <div class="sol-info">
+        <div class="sol-name">${g.nombre}</div>
+        <div class="sol-rol">${g.rol || '—'}</div>
+        <div class="sol-wa">+${g.whatsapp}</div>
+        ${emailLine}
+        ${locationLine}
+        <div class="sol-date">${fecha}</div>
+      </div>
+      <span class="sol-status ${g.estado}">${g.estado}</span>
+    </div>
+    <div class="sol-desc">${g.descripcion}</div>
+    ${actionsHtml}
+  `;
+  return card;
+}
+
+// ── Aprobar / Rechazar ───────────────────────────────────────────────
+async function aprobar(id) {
+  const btns = document.querySelectorAll(`#sol-${id} .sol-btn`);
+  btns.forEach(b => b.disabled = true);
+  const { error } = await sb.from('gestores').update({ estado: 'aprobado' }).eq('id', id);
+  if (error) { showToast('Error al aprobar', 'error'); btns.forEach(b => b.disabled = false); return; }
+  showToast('Perfil aprobado y publicado ✓', 'success');
+  document.getElementById(`sol-${id}`)?.remove();
+  updatePendingBadge();
+  if (document.getElementById('adm-grid').children.length === 0) loadTab(currentTab);
+}
+
+async function rechazar(id) {
+  const btns = document.querySelectorAll(`#sol-${id} .sol-btn`);
+  btns.forEach(b => b.disabled = true);
+  const { error } = await sb.from('gestores').update({ estado: 'rechazado' }).eq('id', id);
+  if (error) { showToast('Error al rechazar', 'error'); btns.forEach(b => b.disabled = false); return; }
+  showToast('Solicitud rechazada');
+  document.getElementById(`sol-${id}`)?.remove();
+  updatePendingBadge();
+  if (document.getElementById('adm-grid').children.length === 0) loadTab(currentTab);
+}
+
+// ═══════════════════════════════════════════════
+//  EDITAR PERFIL
+// ═══════════════════════════════════════════════
+let editingId       = null;
+let editNewImgBlob  = null;
+const BUCKET = 'logos-gestores';
+
+function abrirEditar(id) {
+  // Buscar datos en el DOM o recargar desde Supabase
+  loadGestorParaEditar(id);
+}
+
+async function loadGestorParaEditar(id) {
+  editingId = id;
+  editNewImgBlob = null;
+
+  const { data, error } = await sb.from('gestores').select('*').eq('id', id).single();
+  if (error || !data) { showToast('No se pudo cargar el perfil', 'error'); return; }
+
+  const g = data;
+
+  // Rellenar campos
+  document.getElementById('ef-nombre').value    = g.nombre    || '';
+  document.getElementById('ef-rol').value        = g.rol       || '';
+  document.getElementById('ef-desc').value       = g.descripcion || '';
+  document.getElementById('ef-wa').value         = g.whatsapp  || '';
+  document.getElementById('ef-email').value      = g.email     || '';
+  document.getElementById('ef-provincia').value  = g.provincia || '';
+  document.getElementById('ef-pais').value       = g.pais      || '';
+
+  document.getElementById('edit-sheet-sub').textContent = g.nombre;
+  document.getElementById('edit-status').textContent = '';
+
+  // Imagen actual
+  const imgEl  = document.getElementById('edit-img-current');
+  const infoEl = document.getElementById('edit-img-status');
+  if (g.logo_url) {
+    imgEl.innerHTML = `<img src="${g.logo_url}" style="width:50px;height:50px;border-radius:50%;object-fit:cover">`;
+    imgEl.classList.remove('no-img');
+    infoEl.innerHTML = 'Imagen actual cargada. <strong>Opcional: cambia la imagen</strong>';
+  } else {
+    imgEl.innerHTML = '👤';
+    imgEl.classList.add('no-img');
+    infoEl.textContent = 'Sin imagen. Puedes subir una.';
+  }
+
+  // Resetear input de imagen
+  const imgInput = document.getElementById('edit-img-input');
+  imgInput.value = '';
+
+  // Botón guardar — restaurar
+  const saveBtn = document.getElementById('edit-save-btn');
+  saveBtn.disabled = false;
+  saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Guardar cambios`;
+
+  document.getElementById('edit-overlay').classList.add('active');
+}
+
+// Compresión canvas → 60 KB (igual que en gestores.js)
+function compressForEdit(file) {
+  return new Promise((resolve, reject) => {
+    const MAX_BYTES = 60 * 1024, MAX_DIM = 400;
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > height) { if (width > MAX_DIM) { height = Math.round(height * MAX_DIM / width); width = MAX_DIM; } }
+      else                { if (height > MAX_DIM) { width = Math.round(width * MAX_DIM / height); height = MAX_DIM; } }
+      const c = document.createElement('canvas');
+      c.width = width; c.height = height;
+      c.getContext('2d').drawImage(img, 0, 0, width, height);
+      let q = 0.82;
+      const run = () => c.toBlob(b => {
+        if (!b) { reject(new Error('No se pudo comprimir.')); return; }
+        if (b.size <= MAX_BYTES || q <= 0.1) resolve(b);
+        else { q = Math.max(0.1, q - 0.08); run(); }
+      }, 'image/jpeg', q);
+      run();
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen.')); };
+    img.src = url;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Cerrar edición
+  document.getElementById('edit-close')?.addEventListener('click',  () => document.getElementById('edit-overlay').classList.remove('active'));
+  document.getElementById('edit-cancel-btn')?.addEventListener('click', () => document.getElementById('edit-overlay').classList.remove('active'));
+  document.getElementById('edit-overlay')?.addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('active');
+  });
+
+  // Cambio de imagen en edición
+  document.getElementById('edit-img-input')?.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const infoEl = document.getElementById('edit-img-status');
+    const imgEl  = document.getElementById('edit-img-current');
+    infoEl.textContent = 'Comprimiendo…';
+    editNewImgBlob = null;
+    try {
+      const blob = await compressForEdit(file);
+      editNewImgBlob = blob;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        imgEl.innerHTML = `<img src="${ev.target.result}" style="width:50px;height:50px;border-radius:50%;object-fit:cover">`;
+        imgEl.classList.remove('no-img');
+      };
+      reader.readAsDataURL(blob);
+      infoEl.innerHTML = `Nueva imagen lista · <strong>${(blob.size/1024).toFixed(1)} KB ✓</strong>`;
+    } catch(err) {
+      infoEl.innerHTML = `<span style="color:var(--red)">${err.message}</span>`;
+    }
+  });
+
+  // Guardar edición
+  document.getElementById('edit-save-btn')?.addEventListener('click', guardarEdicion);
+});
+
+async function guardarEdicion() {
+  if (!editingId) return;
+  const btn    = document.getElementById('edit-save-btn');
+  const status = document.getElementById('edit-status');
+  status.textContent = '';
+
+  const nombre    = document.getElementById('ef-nombre').value.trim();
+  const rol       = document.getElementById('ef-rol').value.trim();
+  const desc      = document.getElementById('ef-desc').value.trim();
+  const wa        = document.getElementById('ef-wa').value.trim().replace(/\D/g,'');
+  const email     = document.getElementById('ef-email').value.trim();
+  const provincia = document.getElementById('ef-provincia').value.trim();
+  const pais      = document.getElementById('ef-pais').value.trim();
+
+  if (!nombre) { status.textContent = 'El nombre es obligatorio.'; return; }
+  if (!desc)   { status.textContent = 'La descripción es obligatoria.'; return; }
+  if (!wa || wa.length < 7) { status.textContent = 'WhatsApp inválido.'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin .7s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.18-5.04"/></svg> Guardando…';
+
+  let logo_url_update = undefined; // undefined = no cambiar
+
+  if (editNewImgBlob) {
+    try {
+      btn.innerHTML = '… Subiendo imagen';
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`;
+      const { error: upErr } = await sb.storage.from(BUCKET).upload(path, editNewImgBlob, { contentType: 'image/jpeg', upsert: false });
+      if (upErr) throw new Error(upErr.message);
+      const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(path);
+      logo_url_update = pub.publicUrl;
+    } catch(err) {
+      const cont = confirm(err.message + '\n\n¿Guardar igual sin actualizar imagen?');
+      if (!cont) {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Guardar cambios`;
+        status.textContent = err.message;
+        return;
+      }
+    }
+  }
+
+  const payload = { nombre, rol: rol || null, descripcion: desc, whatsapp: wa, email: email || null, provincia: provincia || null, pais: pais || null };
+  if (logo_url_update !== undefined) payload.logo_url = logo_url_update;
+
+  const { error } = await sb.from('gestores').update(payload).eq('id', editingId);
+  if (error) {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Guardar cambios`;
+    status.textContent = 'Error: ' + (error.message || 'Intenta de nuevo.');
+    return;
+  }
+
+  showToast('Perfil actualizado ✓', 'success');
+  document.getElementById('edit-overlay').classList.remove('active');
+  loadTab('aprobado'); // Recargar la lista
+}
+
+// ═══════════════════════════════════════════════
+//  ELIMINAR PERFIL
+// ═══════════════════════════════════════════════
+let pendingDeleteId = null;
+
+function pedirConfirmacion(id, nombre) {
+  pendingDeleteId = id;
+  document.getElementById('confirm-sub').textContent =
+    `¿Seguro que quieres eliminar el perfil de "${nombre}"? Esta acción no se puede deshacer.`;
+  document.getElementById('confirm-overlay').classList.add('active');
+}
+
+function closeConfirm() {
+  pendingDeleteId = null;
+  document.getElementById('confirm-overlay').classList.remove('active');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('confirm-overlay')?.addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeConfirm();
+  });
+
+  document.getElementById('confirm-delete-btn')?.addEventListener('click', async () => {
+    if (!pendingDeleteId) return;
+    const id  = pendingDeleteId;
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = true;
+    btn.textContent = 'Eliminando…';
+
+    const { error } = await sb.from('gestores').delete().eq('id', id);
+    btn.disabled = false;
+    btn.textContent = 'Eliminar';
+    closeConfirm();
+
+    if (error) { showToast('Error al eliminar', 'error'); return; }
+
+    showToast('Perfil eliminado', 'success');
+    document.getElementById(`sol-${id}`)?.remove();
+    if (document.getElementById('adm-grid').children.length === 0) loadTab(currentTab);
+  });
+});
+
+// ── Toast ────────────────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  setTimeout(() => t.className = '', 2800);
+}
+</script>
+</body>
+</html>
+

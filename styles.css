@@ -172,6 +172,12 @@ header {
 body.chat-active #statusPanel, body.chat-active .news-ticker-container {
   opacity:0; max-height:0; transform:translateY(-8px); pointer-events:none;
 }
+body.tabs-ready #statusPanel, body.tabs-ready .news-ticker-container {
+  transition: opacity .22s ease, transform .22s ease, max-height .25s ease;
+}
+body.no-panel-anim #statusPanel, body.no-panel-anim .news-ticker-container {
+  transition: none !important;
+}
 body.admin-mode .news-ticker-container { display:none; }
 #lastEditedTime { display:none !important; }
 
@@ -195,6 +201,7 @@ body.admin-mode .news-ticker-container { display:none; }
 /* TAB VIEWS */
 .tab-view { display:none; }
 .tab-view.active { display:block; animation:fadeUp .32s cubic-bezier(0.34,1.2,0.64,1); }
+.tab-view.active.no-anim { animation:none; }
 
 /* TAB 1 - CALENDARIO */
 #view-calendario { padding:20px 16px calc(var(--wrap-h) + 36px); max-width:900px; margin:0 auto; }
@@ -524,3 +531,124 @@ input::placeholder, textarea::placeholder { color:var(--t4); }
 .noticias-delete-bar .btn-confirmar { flex:2; padding:12px 0; border:none; border-radius:var(--r2); background:rgba(224,48,48,0.12); box-shadow:var(--neu-out-sm); color:var(--red); font-size:0.88rem; font-weight:700; cursor:not-allowed; transition:background .15s,box-shadow .15s; }
 .noticias-delete-bar .btn-confirmar.activo { background:var(--red); color:white; cursor:pointer; box-shadow:4px 4px 12px rgba(224,48,48,0.40),-2px -2px 8px rgba(255,255,255,0.70); }
 .noticias-delete-bar .btn-confirmar.activo:hover { box-shadow:6px 6px 18px rgba(224,48,48,0.46); }
+
+/* ============================================================
+   SKELETON SCREENS — Pantallas Esqueleto
+   ============================================================ */
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.07) 25%,
+    rgba(0,0,0,0.04) 50%,
+    rgba(0,0,0,0.07) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 8px;
+}
+
+/* --- Tarjetas principales (#contenedor) --- */
+.card-skeleton {
+  border-radius: var(--r2);
+  background: var(--bg-card);
+  box-shadow: var(--neu-out);
+  padding: 18px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 130px;
+}
+.card-skeleton .sk-emoji {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+}
+.card-skeleton .sk-title {
+  width: 75%; height: 11px;
+  border-radius: 6px;
+}
+.card-skeleton .sk-line {
+  width: 90%; height: 9px;
+  border-radius: 6px;
+}
+.card-skeleton .sk-line.short {
+  width: 60%;
+}
+
+/* --- Panel de estado (statusDataContainer) --- */
+.status-skeleton-row {
+  display: flex; gap: 8px;
+}
+.status-item-skeleton {
+  flex: 1;
+  border-radius: var(--r2);
+  background: var(--bg-card);
+  box-shadow: var(--neu-out-sm);
+  padding: 10px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.status-item-skeleton .sk-label {
+  width: 55%; height: 8px;
+  border-radius: 4px;
+}
+.status-item-skeleton .sk-value {
+  width: 70%; height: 14px;
+  border-radius: 5px;
+}
+
+/* --- Noticias (noticias-list) --- */
+.noticia-skeleton {
+  border-radius: var(--r2);
+  background: var(--bg-card);
+  box-shadow: var(--neu-out);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.noticia-skeleton::before {
+  content: '';
+  position: absolute; left: 0; top: 12px; bottom: 12px;
+  width: 3px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 0 2px 2px 0;
+}
+.noticia-skeleton .sk-line { width: 100%; height: 10px; border-radius: 5px; }
+.noticia-skeleton .sk-line.med { width: 80%; }
+.noticia-skeleton .sk-line.short { width: 45%; }
+
+/* --- Comentarios (commentsContainer) --- */
+.comment-skeleton {
+  display: flex;
+  gap: 10px;
+  padding: 4px 0;
+}
+.comment-skeleton .sk-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.comment-skeleton .sk-bubble {
+  flex: 1;
+  border-radius: var(--r2);
+  background: var(--bg-card);
+  box-shadow: var(--neu-out-sm);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.comment-skeleton .sk-name { width: 30%; height: 9px; border-radius: 4px; }
+.comment-skeleton .sk-text { width: 90%; height: 9px; border-radius: 4px; }
+.comment-skeleton .sk-text.short { width: 65%; }

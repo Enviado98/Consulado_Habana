@@ -528,21 +528,41 @@ async function loadNews() {
     newsData.forEach(n => { if (new Date(n.timestamp).getTime() > cutoff) validNews.push(n); else supabase.from('noticias').delete().eq('id', n.id); });
     currentNews = validNews;
 
-    // ── TICKER (barra roja superior) ──────────────────────────
+    // ── TICKER ────────────────────────────────────────────────
+    const wrap    = DOMElements.newsTicker;
+    const content = DOMElements.newsTickerContent;
+
+    // Construir los items
+    const SEPARATOR = '<span class="news-sep" aria-hidden="true"> · </span>';
+    let itemsHTML;
     if (validNews.length > 0) {
-        const html = validNews.map(n => `<span class="news-item">${linkify(n.text)} <small>(${timeAgo(n.timestamp).text})</small></span>`).join('<span class="news-item"> | </span>');
-        DOMElements.newsTickerContent.innerHTML = `${html}<span class="news-item"> | </span>${html}`;
-        DOMElements.newsTicker.style.display = 'flex';
-        const width = DOMElements.newsTickerContent.scrollWidth / 2; const dur = width / NEWS_SCROLL_SPEED_PX_PER_SEC;
-        DOMElements.dynamicTickerStyles.innerHTML = `@keyframes ticker-move-dynamic { 0% { transform: translateX(0); } 100% { transform: translateX(-${width}px); } }`;
-        DOMElements.newsTickerContent.style.animation = `ticker-move-dynamic ${dur}s linear infinite`;
+        itemsHTML = validNews
+            .map(n => `<span class="news-item">${linkify(n.text)}<small>${timeAgo(n.timestamp).text}</small></span>`)
+            .join(SEPARATOR);
     } else {
-        DOMElements.newsTicker.style.display = 'flex';
-        DOMElements.newsTickerContent.innerHTML = `<span class="news-item">Sin Noticias recientes... || 🛡 Activa el modo edición para publicar</span>`.repeat(2);
-        DOMElements.newsTickerContent.style.animation = `ticker-move-static 15s linear infinite`;
+        itemsHTML = `<span class="news-item">Sin reportes recientes — activa el modo edición para publicar</span>`;
     }
 
-    // ── TAB DE NOTICIAS (lista de cards) ─────────────────────
+    // Duplicar exactamente una vez → el keyframe va de 0 a -50% sin corte
+    const half = `<span class="news-half" aria-hidden="false">${itemsHTML}</span>${SEPARATOR}`;
+    content.innerHTML = half + `<span class="news-half" aria-hidden="true">${itemsHTML}</span>${SEPARATOR}`;
+
+    // Duración proporcional al texto (px/s constante = 80px/s aprox)
+    // Se aplica ANTES de que empiece la animación → sin reinicio
+    const charCount = itemsHTML.replace(/<[^>]*>/g, '').length;
+    const dur = Math.max(20, Math.round(charCount * 0.18)); // mínimo 20s
+    wrap.style.setProperty('--ticker-dur', `${dur}s`);
+
+    // Reiniciar animación limpiamente solo si el contenido cambia
+    content.style.animation = 'none';
+    // forzar reflow en un frame para que el navegador aplique el reset
+    requestAnimationFrame(() => {
+        content.style.animation = '';
+    });
+
+    wrap.style.display = 'flex';
+
+    // ── TAB DE NOTICIAS ───────────────────────────────────────
     renderNoticiasList(validNews);
 }
 

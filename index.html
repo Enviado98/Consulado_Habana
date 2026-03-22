@@ -344,18 +344,19 @@
 
 /* ── Botón WhatsApp ── */
 .gc-wa-btn {
-  display: flex; align-items: center; justify-content: center; gap: 9px;
-  width: 100%; padding: 13px 16px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 14px 20px;
   border: none; cursor: pointer; text-decoration: none;
-  border-radius: 50px;
-  font-family: var(--f); font-size: 0.84rem; font-weight: 700;
-  letter-spacing: 0.01em;
-  transition: transform 0.15s, filter 0.15s;
-  background: linear-gradient(135deg, #1a9e4a 0%, #158a3e 100%);
+  border-radius: 16px;
+  font-family: var(--f); font-size: 0.88rem; font-weight: 700;
+  letter-spacing: -0.01em;
+  background: #25d366;
   color: #fff;
-  box-shadow: 0 4px 16px rgba(21,138,62,0.32), 0 1px 0 rgba(255,255,255,0.15) inset;
+  box-shadow: 0 4px 14px rgba(37,211,102,0.38), 3px 3px 10px rgba(0,0,0,0.10);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
-.gc-wa-btn:active { transform: scale(0.97); filter: brightness(0.95); }
+.gc-wa-btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,211,102,0.48), 3px 3px 10px rgba(0,0,0,0.10); }
+.gc-wa-btn:active { transform: scale(0.97); }
 
 .gc-publish-btn {
   background: var(--gc-color, #7b6cf6) !important;
@@ -1028,4 +1029,5 @@
 <script type="module" src="script.js"></script>
 </body>
 </html>
+
 

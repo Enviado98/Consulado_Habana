@@ -957,6 +957,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ── BOTÓN COMPARTIR HEADER ─────────────────────────────
+    document.getElementById('shareBtn')?.addEventListener('click', async () => {
+        const shareData = {
+            title: 'Trámites Consulares La Habana',
+            text: '📅 Calendario consular — citas, tasas de cambio, déficit y más, actualizado en vivo',
+            url: window.location.href
+        };
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            const url  = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(shareData.text + '\n');
+            window.open(`https://wa.me/?text=${text}${url}`, '_blank', 'noopener');
+        }
+    });
+
     // Enter en el chat envía el comentario
     const chatMsgInput = document.getElementById('commentText');
     if (chatMsgInput) {

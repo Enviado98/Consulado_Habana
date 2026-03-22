@@ -66,7 +66,11 @@ body {
 @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
 @keyframes pulse    { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.3; transform:scale(0.80); } }
 @keyframes slideDown { from { transform:translateY(-100%); opacity:0; } to { transform:translateY(0); opacity:1; } }
-@keyframes ticker-move-static { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
+/* TICKER — animación única, GPU-accelerated, sin saltos */
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
 @keyframes overlayIn { from { opacity:0; } to { opacity:1; } }
 @keyframes sheetUp  { from { transform:translateY(100%); } to { transform:translateY(0); } }
 @keyframes cardIn   { from { opacity:0; transform:translateY(20px) scale(0.96); } to { opacity:1; transform:translateY(0) scale(1); } }
@@ -193,7 +197,17 @@ body.admin-mode .news-ticker-container { display:none; }
   margin-left:10px; flex-shrink:0; line-height:1.9;
 }
 .news-ticker-wrap { overflow:hidden; flex-grow:1; }
-.news-ticker-content { white-space:nowrap; font-size:0.82rem; font-weight:500; display:inline-block; }
+.news-ticker-content {
+  white-space: nowrap;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: inline-block;
+  /* GPU layer — elimina jank y saltos */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  animation: ticker-scroll var(--ticker-dur, 30s) linear infinite;
+}
 .news-item { padding:0 16px; display:inline-block; }
 .news-item small { font-size:0.67rem; color:rgba(255,255,255,0.55); margin-left:4px; }
 .news-item a { color:#fff9c4; text-decoration:underline; font-weight:700; }

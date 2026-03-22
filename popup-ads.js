@@ -16,7 +16,7 @@
       type: 'welcome',
       badge: 'Anunciante Destacado',
       badgeColor: 'violet',
-      title: '¿Gestor o Abogado?',
+      title: '¿Eres Gestor o Abogado?',
       subtitle: 'Llega a miles de cubanos que buscan ayuda con trámites consulares',
       body: 'Esta web recibe visitas diarias de personas interesadas en citas consulares, LMD y legalizaciones en La Habana. Anúnciate aquí y conecta directamente con tus clientes.',
       cta: 'Contactar por WhatsApp',

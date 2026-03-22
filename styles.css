@@ -212,6 +212,29 @@ body.admin-mode .news-ticker-container { display:none; }
 .news-item small { font-size:0.67rem; color:rgba(255,255,255,0.55); margin-left:4px; }
 .news-item a { color:#fff9c4; text-decoration:underline; font-weight:700; }
 
+/* ── BOTÓN COMPARTIR (junto a la campanita) ──────────────── */
+.sp-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  background: #e8e8ed;
+  color: var(--t2);
+  box-shadow: 3px 3px 8px rgba(0,0,0,0.12), -2px -2px 6px rgba(255,255,255,0.82);
+  flex-shrink: 0;
+  margin-right: 6px;
+  transition: color .18s ease, transform .18s cubic-bezier(0.34,1.4,0.64,1);
+}
+.sp-share-btn:hover  { color: var(--blue); transform: scale(1.08); }
+.sp-share-btn:active {
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.13), inset -2px -2px 5px rgba(255,255,255,0.72);
+  transform: scale(0.95);
+}
+
 /* TAB VIEWS */
 .tab-view { display:none; }
 .tab-view.active { display:block; animation:fadeUp .32s cubic-bezier(0.34,1.2,0.64,1); }

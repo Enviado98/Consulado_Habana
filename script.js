@@ -2,7 +2,8 @@
 // 🚨 CONFIGURACIÓN DE SUPABASE (BAAS) 🚨
 // ----------------------------------------------------
 const SUPABASE_URL = "https://mkvpjsvqjqeuniabjjwr.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdnBqc3ZxanFldW5pYWJqandyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTI0MzU0OCwiZXhwIjoyMDgwODE5NTQ4fQ.No4ZOo0sawF6KYJnIrSD2CVQd1lHzNlLSplQgfuHBcg"; 
+// ⚠️ REEMPLAZA esto con tu anon key real (Supabase → Project Settings → API → anon public)
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rdnBqc3ZxanFldW5pYWJqandyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNDM1NDgsImV4cCI6MjA4MDgxOTU0OH0.QWD9dp9qQFWscK-dRTqYX7eKrZe3_2Ev4FqTOl8rPI0"; 
 
 // ----------------------------------------------------
 // ⏱ CONFIGURACIÓN DE ACTUALIZACIÓN AUTOMÁTICA
@@ -509,10 +510,14 @@ function toggleTimePanel(event) {
     if (clicked.classList.toggle('show-time-panel')) setTimeout(() => clicked.classList.remove('show-time-panel'), TIME_PANEL_AUTOHIDE_MS);
 }
 
+function escapeHTML(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 function linkify(text) {
-    return text.replace(/(\b(https?:\/\/|www\.)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, (url) => {
-        let fullUrl = url.startsWith('http') ? url : 'http://' + url;
-        return `<a href="${fullUrl}" target="_blank">${url}</a>`;
+    const safe = escapeHTML(text);
+    return safe.replace(/(https?:\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, (url) => {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
     });
 }
 
@@ -818,32 +823,19 @@ async function handlePublishReply(event) {
 
 async function handleLikeToggle(event) {
     const btn = event.currentTarget;
-    const id = btn.getAttribute('data-id');
-    const isLiked = btn.classList.contains('liked');
-    const counter = btn.querySelector('.like-count');
+    const id = parseInt(btn.getAttribute('data-id'));
     btn.disabled = true;
 
     try {
-        if (isLiked) {
-            // Quitar like: borrar de tabla likes y decrementar en comentarios
-            await supabase.from('likes').delete().eq('comment_id', id).eq('user_web_id', userWebId);
-            const newCount = Math.max(0, parseInt(counter.textContent) - 1);
-            await supabase.from('comentarios').update({ likes_count: newCount }).eq('id', id);
-            btn.classList.remove('liked');
-            counter.textContent = newCount;
-        } else {
-            // Dar like: insertar en tabla likes (ignorar si ya existe) y incrementar
-            const { error } = await supabase.from('likes').insert([{ comment_id: id, user_web_id: userWebId }]);
-            if (!error || error.code === '23505') {
-                // '23505' = unique constraint violation (ya le había dado like) — igual actualizamos UI
-                if (!error) {
-                    // Solo incrementar en DB si el insert fue nuevo (no duplicado)
-                    const newCount = parseInt(counter.textContent) + 1;
-                    await supabase.from('comentarios').update({ likes_count: newCount }).eq('id', id);
-                    counter.textContent = newCount;
-                }
-                btn.classList.add('liked');
-            }
+        // Llamada atómica al servidor — el conteo nunca se lee del DOM
+        const { data, error } = await supabase.rpc('toggle_like', {
+            p_comment_id: id,
+            p_user_web_id: userWebId
+        });
+
+        if (!error && data) {
+            btn.querySelector('.like-count').textContent = data.count;
+            btn.classList.toggle('liked', data.liked);
         }
     } catch (e) {
         console.error('⚠️ Error en like:', e);

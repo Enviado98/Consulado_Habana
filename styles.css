@@ -34,9 +34,9 @@
   --violet-bg: rgba(80,64,184,0.10);
   --cyan:      #1898c8;
 
-  --tab-h:    64px;
-  --wrap-h:   90px;
-  --head-h:   58px;
+  --tab-h:    58px;
+  --wrap-h:   81px;
+  --head-h:   52px;
   --r:        14px;
   --r2:       20px;
   --r3:       32px;
@@ -49,6 +49,7 @@
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
 ::selection { background: rgba(32,96,200,0.14); }
 
+html { font-size: 90%; }
 html, body { height: 100%; }
 
 body {

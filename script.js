@@ -171,7 +171,7 @@ function timeAgo(timestamp) {
 }
 
 // ----------------------------------------------------
-// 💰 SISTEMA UNIFICADO DE TASAS — El Toque + Yadio fallback
+// 💰 SISTEMA UNIFICADO DE TASAS — El Toque
 // ----------------------------------------------------
 // Todas las divisas usan exactamente la misma lógica:
 //   1. Se obtienen de El Toque (fuente primaria)
@@ -272,20 +272,6 @@ function extractRatesFromNextData(html) {
     return rates;
 }
 
-// Fallback: Yadio.io — solo tiene USD y EUR
-async function fetchFromYadio() {
-    const res = await Promise.race([
-        fetch("https://api.yadio.io/exrates/CUP"),
-        new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), 8000))
-    ]);
-    if (!res.ok) throw new Error(`Yadio HTTP ${res.status}`);
-    const j = await res.json();
-    return {
-        USD: j.CUP?.USD ? String(Math.round(1 / j.CUP.USD)) : null,
-        EUR: j.CUP?.EUR ? String(Math.round(1 / j.CUP.EUR)) : null,
-    };
-}
-
 async function fetchElToqueRates() {
     try {
         const lastUpdate = new Date(currentStatus.divisa_edited_at || 0).getTime();
@@ -302,14 +288,7 @@ async function fetchElToqueRates() {
             rawRates = extractRatesFromNextData(html);
             console.log("✅ El Toque OK:", JSON.stringify(rawRates));
         } catch (e) {
-            console.warn("⚠️ El Toque falló, usando Yadio:", e.message);
-            try {
-                const y = await fetchFromYadio();
-                rawRates = { USD: y.USD, EUR: y.EUR };
-                console.log(`✅ Yadio: USD=${rawRates.USD} EUR=${rawRates.EUR}`);
-            } catch (e2) {
-                console.error("⚠️ Yadio también falló:", e2.message);
-            }
+            console.warn("⚠️ El Toque falló:", e.message);
         }
 
         // Validar USD — si no hay USD válido, no actualizar nada

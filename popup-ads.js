@@ -14,7 +14,7 @@
     {
       id: 'welcome',
       type: 'welcome',
-      badge: 'Anunciate Aquí',
+      badge: 'Anunciante Destacado',
       badgeColor: 'violet',
       title: '¿Eres Gestor o Abogado?',
       subtitle: 'Llega a miles de cubanos que buscan ayuda con trámites consulares',
@@ -378,7 +378,7 @@
         </button>
 
         <div class="ch-card-header">
-          <div class="ch-badge">Anunciante Destacado</div>
+          <div class="ch-badge">Anunciate Aquí</div>
           <div class="ch-card-title">${ad.title}</div>
           <div class="ch-card-subtitle">${ad.subtitle}</div>
         </div>

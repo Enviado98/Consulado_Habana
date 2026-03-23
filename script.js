@@ -196,16 +196,22 @@ const DIVISAS = [
 ];
 
 // Divisas que siempre usan ema_value (independientemente del count_values)
-const ALWAYS_EMA = new Set(['MXN', 'BRL', 'CLA']);
+const ALWAYS_EMA = new Set(['MXN', 'BRL', 'CLA', 'CAD']);
+
+// Divisas que usan EXCLUSIVAMENTE la median (sin ningun fallback)
+const ALWAYS_MEDIAN = new Set(['MLC', 'EUR']);
 
 // Extrae el valor correcto de una entrada de statistics de El Toque
 // dec: número de decimales a conservar (0 para USD/EUR/MLC/CAD, 2 para MXN/BRL/CLA)
 function elToqueVal(s, dec = 0, key = '') {
     if (!s) return null;
     let v;
-    if (ALWAYS_EMA.has(key)) {
-        // MXN, BRL y CLA siempre usan ema_value
-        v = s.ema_value ?? s.median;
+    if (ALWAYS_MEDIAN.has(key)) {
+        // MLC y EUR (ECU) usan exclusivamente la median, sin fallback
+        v = s.median;
+    } else if (ALWAYS_EMA.has(key)) {
+        // MXN, BRL, CLA y CAD usan exclusivamente ema_value, sin fallback
+        v = s.ema_value;
     } else {
         const count = s.count_values ?? 0;
         if (count >= 11 && s.median != null) {
@@ -234,7 +240,6 @@ function isValidRate(divisa, value) {
 // Fetch con timeout, intenta dos proxies en orden
 async function fetchViaProxy(targetUrl, timeoutMs = 12000) {
     const proxies = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
         `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
     ];
     for (const url of proxies) {
@@ -313,14 +318,17 @@ async function fetchElToqueRates() {
             return;
         }
 
-        // Para cada divisa: usar nuevo valor si es válido, si no conservar el último de Supabase
+        // Para cada divisa: solo actualizar si el nuevo valor es válido
+        // Si no llega un valor válido, se conserva el anterior sin tocarlo (ni en memoria ni en Supabase)
         const update = { divisa_edited_at: new Date().toISOString() };
         for (const d of DIVISAS) {
             const fresh = rawRates[d.key];
-            const prev  = currentStatus[d.col] || null;
-            const final = isValidRate(d.key, fresh) ? fresh : (prev || '---');
-            currentStatus[d.col] = final;
-            update[d.col]        = final;
+            if (isValidRate(d.key, fresh)) {
+                currentStatus[d.col] = fresh;
+                update[d.col]        = fresh;
+            } else {
+                console.warn(`⚠️ ${d.key} sin valor válido, se conserva el anterior: ${currentStatus[d.col]}`);
+            }
         }
 
         renderStatusPanel(currentStatus);

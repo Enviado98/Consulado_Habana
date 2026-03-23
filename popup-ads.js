@@ -14,7 +14,7 @@
     {
       id: 'welcome',
       type: 'welcome',
-      badge: 'Anunciante Destacado',
+      badge: 'Anunciate Aquí,
       badgeColor: 'violet',
       title: '¿Eres Gestor o Abogado?',
       subtitle: 'Llega a miles de cubanos que buscan ayuda con trámites consulares',

@@ -337,9 +337,39 @@
   background: var(--bg-card);
 }
 .gc-desc {
-  font-size: 0.78rem; color: var(--t2); line-height: 1.6;
-  margin-bottom: 14px;
+  font-size: 0.8rem;
+  font-family: var(--f);
+  color: var(--t2);
+  line-height: 1.7;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
+.gc-desc.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+.gc-ver-mas-btn {
+  display: block;
+  width: fit-content;
+  margin: 6px auto 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--f);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--violet);
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(123,108,246,0.08);
+  transition: background 0.15s;
+}
+.gc-ver-mas-btn:hover { background: rgba(123,108,246,0.16); }
 .gc-desc-muted { color: var(--t4); font-style: italic; }
 
 /* ── Botón WhatsApp ── */
@@ -884,8 +914,8 @@
 
         <div class="gc-field">
           <label>Descripción de servicios *</label>
-          <textarea id="gc-f-desc" placeholder="Describe brevemente qué servicios ofreces, tu experiencia y en qué puedes ayudar…" maxlength="400"></textarea>
-          <div class="gc-field-hint">Máximo 400 caracteres · <span id="gc-desc-count">0</span>/400</div>
+          <textarea id="gc-f-desc" placeholder="Describe brevemente qué servicios ofreces, tu experiencia y en qué puedes ayudar…" maxlength="2000"></textarea>
+          <div class="gc-field-hint">Máximo 2000 caracteres · <span id="gc-desc-count">0</span>/2000</div>
         </div>
 
         <div class="gc-nav-btns">

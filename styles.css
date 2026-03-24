@@ -8,7 +8,6 @@
 
 :root {
   --bg:        #e8e8ed;
-  --bg-light:  #f0f0f5;
   --bg-card:   #eaeaf0;
 
   --neu-out:   6px 6px 14px rgba(0,0,0,0.13), -4px -4px 10px rgba(255,255,255,0.85);
@@ -29,10 +28,8 @@
   --red:       #e03030;
   --red-bg:    rgba(224,48,48,0.10);
   --blue:      #2060c8;
-  --blue-bg:   rgba(32,96,200,0.10);
   --violet:    #5040b8;
   --violet-bg: rgba(80,64,184,0.10);
-  --cyan:      #1898c8;
 
   --tab-h:    58px;
   --wrap-h:   81px;
@@ -143,6 +140,7 @@ header {
   padding: 12px 16px;
 }
 .status-panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+/* ── Status panel tweaks (Gestores) ── */
 .sp-title { font-size:0.65rem; font-weight:700; letter-spacing:0.10em; text-transform:uppercase; color:var(--t3); }
 .live-container {
   display:flex; align-items:center; gap:5px;
@@ -301,7 +299,6 @@ body.admin-mode .news-ticker-container { display:none; }
   box-shadow:var(--neu-out-sm);
 }
 .card-recent .card-label { display:block; color:var(--red); background:var(--bg-card); }
-.card-old    .card-label { display:block; color:var(--cyan); background:var(--bg-card); }
 
 .card .editable-title, .card .editable-emoji {
   background:var(--bg); border:1px solid rgba(0,0,0,0.08); color:var(--t1);
@@ -550,8 +547,6 @@ body.admin-mode .news-ticker-container { display:none; }
 @media (min-width:768px) { @keyframes sheetUp { from { opacity:0; transform:scale(0.94) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } } }
 
 /* UTILITIES */
-.chat-footer { display:none; }
-footer { display:none; }
 input::placeholder, textarea::placeholder { color:var(--t4); }
 *:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
 
@@ -814,7 +809,6 @@ input::placeholder, textarea::placeholder { color:var(--t4); }
   padding: 2px 8px !important;
 }
 .sp-title-group .live-dot { width: 4px !important; height: 4px !important; }
-.status-panel-header { display: flex; align-items: center; justify-content: space-between; }
 
 /* ══════════════════════════════════════
    GESTORES — tarjetas de perfil
@@ -1146,10 +1140,6 @@ input::placeholder, textarea::placeholder { color:var(--t4); }
   max-height: 94vh; overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   animation: sheetUp 0.4s cubic-bezier(0.32,0.72,0,1) both;
-}
-@keyframes sheetUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
 }
 
 /* ── Header del sheet ── */

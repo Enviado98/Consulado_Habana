@@ -24,6 +24,13 @@ const COMMENTS_CACHE_KEY    = 'comments_cache';       // JSON de los comentarios
 const COMMENTS_CACHE_EXP_KEY = 'comments_cache_exp';  // Timestamp de expiración
 const COMMENTS_TTL           = 2 * 60 * 1000;         // 2 minutos
 
+// ----------------------------------------------------
+// 📊 CACHÉ DE STATUS (tasas + déficit) — TTL 9 minutos
+// ----------------------------------------------------
+const STATUS_CACHE_KEY     = 'status_cache';      // JSON de status_data
+const STATUS_CACHE_EXP_KEY = 'status_cache_exp';  // Timestamp de expiración
+const STATUS_TTL           = 9 * 60 * 1000;       // 9 minutos (< ciclo scraping de 10 min)
+
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -922,8 +929,23 @@ function renderStatusPanel(status) {
 }
 
 async function loadStatusData() {
-    const { data } = await supabase.from('status_data').select('*').eq('id', 1).single();
-    if (data) currentStatus = { ...currentStatus, ...data };
+    const cachedExp  = parseInt(localStorage.getItem(STATUS_CACHE_EXP_KEY) || '0');
+    const cachedJSON = localStorage.getItem(STATUS_CACHE_KEY);
+
+    if (cachedJSON && Date.now() < cachedExp) {
+        // ✅ Caché válida — sin consulta a Supabase
+        console.log('💾 Status desde caché local.');
+        currentStatus = { ...currentStatus, ...JSON.parse(cachedJSON) };
+    } else {
+        // 🔄 Caché expirada o primera visita — consultar Supabase
+        console.log('🔄 Status desde Supabase.');
+        const { data } = await supabase.from('status_data').select('*').eq('id', 1).single();
+        if (data) {
+            currentStatus = { ...currentStatus, ...data };
+            localStorage.setItem(STATUS_CACHE_KEY,     JSON.stringify(data));
+            localStorage.setItem(STATUS_CACHE_EXP_KEY, Date.now() + STATUS_TTL);
+        }
+    }
     renderStatusPanel(currentStatus); fetchElToqueRates(); fetchDeficitFromCubadebate();
 }
 async function saveChanges() {

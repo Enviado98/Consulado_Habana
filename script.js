@@ -18,11 +18,32 @@ const ITEMS_CACHE_KEY    = 'items_cache';      // JSON de las tarjetas
 const ITEMS_CACHE_TS_KEY = 'items_cache_ts';   // Timestamp del último cambio
 
 // ----------------------------------------------------
+// 📰 CACHÉ DE NOTICIAS (localStorage + TTL fijo)
+// ----------------------------------------------------
+const NEWS_CACHE_KEY     = 'news_cache';       // JSON de las noticias
+const NEWS_CACHE_EXP_KEY = 'news_cache_exp';   // Timestamp de expiración
+const NEWS_TTL           = 5 * 60 * 1000;      // 5 minutos
+
+// ----------------------------------------------------
 // 💬 CACHÉ DE COMENTARIOS (localStorage + TTL fijo)
 // ----------------------------------------------------
 const COMMENTS_CACHE_KEY    = 'comments_cache';       // JSON de los comentarios
 const COMMENTS_CACHE_EXP_KEY = 'comments_cache_exp';  // Timestamp de expiración
 const COMMENTS_TTL           = 2 * 60 * 1000;         // 2 minutos
+
+// ----------------------------------------------------
+// 👍 CACHÉ DE LIKES DEL USUARIO (localStorage, invalidar al dar/quitar like)
+// ----------------------------------------------------
+const LIKES_CACHE_KEY     = 'likes_cache';      // JSON de comment_ids con like del usuario
+const LIKES_CACHE_EXP_KEY = 'likes_cache_exp';  // Timestamp de expiración
+const LIKES_TTL           = 5 * 60 * 1000;      // 5 minutos
+
+// ----------------------------------------------------
+// 👀 CACHÉ DEL CONTADOR DE VISITAS (localStorage + TTL fijo)
+// ----------------------------------------------------
+const VIEWS_CACHE_KEY     = 'views_cache';      // Número de visitas
+const VIEWS_CACHE_EXP_KEY = 'views_cache_exp';  // Timestamp de expiración
+const VIEWS_TTL           = 10 * 60 * 1000;     // 10 minutos
 
 // ----------------------------------------------------
 // 📊 CACHÉ DE STATUS (tasas + déficit) — TTL 9 minutos
@@ -529,10 +550,26 @@ function linkify(text) {
 }
 
 async function loadNews() {
-    const { data: newsData, error } = await supabase.from('noticias').select('id, text, timestamp').order('timestamp', { ascending: false });
-    if (error) return;
-    const validNews = []; const cutoff = Date.now() - RECENT_THRESHOLD_MS;
-    newsData.forEach(n => { if (new Date(n.timestamp).getTime() > cutoff) validNews.push(n); else supabase.from('noticias').delete().eq('id', n.id); });
+    let validNews = [];
+
+    // ── Noticias: desde caché si el TTL no ha expirado ──
+    const cachedExp  = parseInt(localStorage.getItem(NEWS_CACHE_EXP_KEY) || '0');
+    const cachedJSON = localStorage.getItem(NEWS_CACHE_KEY);
+
+    if (cachedJSON && Date.now() < cachedExp) {
+        console.log('💾 Noticias desde caché local.');
+        validNews = JSON.parse(cachedJSON);
+    } else {
+        console.log('🔄 Noticias desde Supabase.');
+        const { data: newsData, error } = await supabase.from('noticias').select('id, text, timestamp').order('timestamp', { ascending: false });
+        if (error) return;
+        const cutoff = Date.now() - RECENT_THRESHOLD_MS;
+        newsData.forEach(n => { if (new Date(n.timestamp).getTime() > cutoff) validNews.push(n); else supabase.from('noticias').delete().eq('id', n.id); });
+        // Guardar en caché con nueva expiración
+        localStorage.setItem(NEWS_CACHE_KEY,     JSON.stringify(validNews));
+        localStorage.setItem(NEWS_CACHE_EXP_KEY, Date.now() + NEWS_TTL);
+    }
+
     currentNews = validNews;
 
     // ── TICKER ────────────────────────────────────────────────
@@ -641,13 +678,22 @@ async function confirmDeleteNews() {
     const ids = [...selectedNewsIds];
     await Promise.all(ids.map(id => supabase.from('noticias').delete().eq('id', id)));
     selectedNewsIds.clear();
+    // 🗑️ Invalidar caché para que el cambio sea visible de inmediato
+    localStorage.removeItem(NEWS_CACHE_KEY);
+    localStorage.removeItem(NEWS_CACHE_EXP_KEY);
     loadNews();
 }
 
 async function addQuickNews() {
     if (!admin) return;
     const text = prompt("✍️ Escribe tu noticia:");
-    if (text && confirm("¿Publicar?")) { await supabase.from('noticias').insert([{ text: text.trim() }]); loadNews(); }
+    if (text && confirm("¿Publicar?")) {
+        await supabase.from('noticias').insert([{ text: text.trim() }]);
+        // 🗑️ Invalidar caché para que la noticia aparezca de inmediato
+        localStorage.removeItem(NEWS_CACHE_KEY);
+        localStorage.removeItem(NEWS_CACHE_EXP_KEY);
+        loadNews();
+    }
 }
 async function deleteNews() {
     // Si currentNews está vacío, recargar desde Supabase
@@ -769,14 +815,27 @@ async function purgeOldComments(allComments) {
 }
 
 async function loadComments() {
-    // ── Likes: siempre desde Supabase (son datos personalizados por usuario) ──
-    const likesResponse = await supabase
-        .from('likes')
-        .select('comment_id')
-        .eq('user_web_id', userWebId);
-
+    // ── Likes: desde caché si el TTL no ha expirado ──
     const userLikesMap = new Map();
-    if (likesResponse.data) likesResponse.data.forEach(like => userLikesMap.set(like.comment_id, true));
+    const likesExp  = parseInt(localStorage.getItem(LIKES_CACHE_EXP_KEY) || '0');
+    const likesJSON = localStorage.getItem(LIKES_CACHE_KEY);
+
+    if (likesJSON && Date.now() < likesExp) {
+        console.log('💾 Likes desde caché local.');
+        JSON.parse(likesJSON).forEach(id => userLikesMap.set(id, true));
+    } else {
+        console.log('🔄 Likes desde Supabase.');
+        const likesResponse = await supabase
+            .from('likes')
+            .select('comment_id')
+            .eq('user_web_id', userWebId);
+        if (likesResponse.data) {
+            likesResponse.data.forEach(like => userLikesMap.set(like.comment_id, true));
+            // Guardar en caché los IDs de comentarios con like
+            localStorage.setItem(LIKES_CACHE_KEY,     JSON.stringify([...userLikesMap.keys()]));
+            localStorage.setItem(LIKES_CACHE_EXP_KEY, Date.now() + LIKES_TTL);
+        }
+    }
 
     // ── Comentarios: desde caché si el TTL no ha expirado ──
     let allComments = null;
@@ -888,6 +947,9 @@ async function handleLikeToggle(event) {
         if (!error && data) {
             btn.querySelector('.like-count').textContent = data.count;
             btn.classList.toggle('liked', data.liked);
+            // 🗑️ Invalidar caché de likes para sincronizar en la próxima carga
+            localStorage.removeItem(LIKES_CACHE_KEY);
+            localStorage.removeItem(LIKES_CACHE_EXP_KEY);
         }
     } catch (e) {
         console.error('⚠️ Error en like:', e);
@@ -908,9 +970,23 @@ async function registerPageView() {
 }
 async function getAndDisplayViewCount() {
     const el = document.getElementById('viewCounter'); if (!el) return;
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    const { count } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gt('created_at', yesterday.toISOString());
-    el.textContent = `👀 ${count ? count.toLocaleString('es-ES') : '0'} `;
+
+    // ── Contador: desde caché si el TTL no ha expirado ──
+    const cachedExp   = parseInt(localStorage.getItem(VIEWS_CACHE_EXP_KEY) || '0');
+    const cachedCount = localStorage.getItem(VIEWS_CACHE_KEY);
+
+    if (cachedCount && Date.now() < cachedExp) {
+        console.log('💾 Visitas desde caché local.');
+        el.textContent = `👀 ${parseInt(cachedCount).toLocaleString('es-ES')} `;
+    } else {
+        console.log('🔄 Visitas desde Supabase.');
+        const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+        const { count } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gt('created_at', yesterday.toISOString());
+        const total = count ?? 0;
+        el.textContent = `👀 ${total.toLocaleString('es-ES')} `;
+        localStorage.setItem(VIEWS_CACHE_KEY,     String(total));
+        localStorage.setItem(VIEWS_CACHE_EXP_KEY, Date.now() + VIEWS_TTL);
+    }
 }
 function renderStatusPanel(status) {
     DOMElements.statusDataContainer.innerHTML = `
@@ -1005,7 +1081,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (text.length < 3) return;
             submitBtn.disabled = true;
             const { error } = await supabase.from('noticias').insert([{ text }]);
-            if (!error) { closeModal(); await loadNews(); }
+            if (!error) {
+                // 🗑️ Invalidar caché para que la noticia aparezca de inmediato
+                localStorage.removeItem(NEWS_CACHE_KEY);
+                localStorage.removeItem(NEWS_CACHE_EXP_KEY);
+                closeModal(); await loadNews();
+            }
             else { alert('❌ Error al publicar. Intenta de nuevo.'); }
             submitBtn.disabled = false;
         });
@@ -1095,3 +1176,4 @@ async function loadData() {
         }
     }
 }
+

@@ -11,6 +11,12 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const CACHE_DURATION        = 10 * 60 * 1000; // 10 minutos — tasas de cambio
 const DEFICIT_CACHE_DURATION = 10 * 60 * 1000; // 10 minutos — déficit energético
 
+// ----------------------------------------------------
+// 💾 CACHÉ DE TARJETAS (localStorage + timestamp)
+// ----------------------------------------------------
+const ITEMS_CACHE_KEY    = 'items_cache';      // JSON de las tarjetas
+const ITEMS_CACHE_TS_KEY = 'items_cache_ts';   // Timestamp del último cambio
+
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -900,7 +906,14 @@ async function saveChanges() {
              updates.push(supabase.from('items').update({ emoji, titulo, contenido, last_edited_timestamp: new Date().toISOString() }).eq('id', id));
         }
     });
-    if (updates.length > 0) { await Promise.all(updates); alert("✅ Guardado."); location.reload(); } else { alert("No hay cambios."); }
+    if (updates.length > 0) {
+        await Promise.all(updates);
+        // 🗑️ Invalidar caché para que todos los usuarios reciban los cambios en su próxima visita
+        localStorage.removeItem(ITEMS_CACHE_KEY);
+        localStorage.removeItem(ITEMS_CACHE_TS_KEY);
+        alert("✅ Guardado.");
+        location.reload();
+    } else { alert("No hay cambios."); }
 }
 document.addEventListener('DOMContentLoaded', () => {
     initTabs();
@@ -981,9 +994,50 @@ function renderCardSkeletons(count = 8) {
 
 async function loadData() {
     renderCardSkeletons(8);
-    const { data } = await supabase.from('items').select('*').order('id');
-    if (data) {
-        currentData = data; DOMElements.contenedor.innerHTML = data.map((item, i) => createCardHTML(item, i)).join('');
-        document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
+    try {
+        // 1️⃣ Consulta ultraligera: solo el timestamp más reciente de todas las tarjetas
+        const { data: tsData } = await supabase
+            .from('items')
+            .select('last_edited_timestamp')
+            .order('last_edited_timestamp', { ascending: false })
+            .limit(1)
+            .single();
+
+        const latestTS   = tsData?.last_edited_timestamp ?? null;
+        const cachedTS   = localStorage.getItem(ITEMS_CACHE_TS_KEY);
+        const cachedJSON = localStorage.getItem(ITEMS_CACHE_KEY);
+
+        if (latestTS && cachedTS === latestTS && cachedJSON) {
+            // ✅ Caché válida — renderizar sin ninguna consulta adicional a la BD
+            console.log('💾 Tarjetas desde caché local (sin cambios en BD).');
+            const data = JSON.parse(cachedJSON);
+            currentData = data;
+            DOMElements.contenedor.innerHTML = data.map((item, i) => createCardHTML(item, i)).join('');
+            document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
+            return;
+        }
+
+        // 🔄 Caché desactualizada o inexistente — cargar todo desde Supabase
+        console.log('🔄 Tarjetas desde Supabase (hay cambios o primera visita).');
+        const { data } = await supabase.from('items').select('*').order('id');
+        if (data) {
+            currentData = data;
+            DOMElements.contenedor.innerHTML = data.map((item, i) => createCardHTML(item, i)).join('');
+            document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
+            // Guardar en caché junto con el timestamp de referencia
+            localStorage.setItem(ITEMS_CACHE_KEY, JSON.stringify(data));
+            if (latestTS) localStorage.setItem(ITEMS_CACHE_TS_KEY, latestTS);
+        }
+    } catch (err) {
+        // 🆘 Fallback offline: si falla la red, servir la caché aunque no haya podido verificar
+        console.warn('⚠️ Error al cargar tarjetas:', err.message);
+        const cachedJSON = localStorage.getItem(ITEMS_CACHE_KEY);
+        if (cachedJSON) {
+            console.log('💾 Fallback: tarjetas desde caché (sin conexión).');
+            const data = JSON.parse(cachedJSON);
+            currentData = data;
+            DOMElements.contenedor.innerHTML = data.map((item, i) => createCardHTML(item, i)).join('');
+            document.querySelectorAll('.card').forEach(c => c.addEventListener('click', toggleTimePanel));
+        }
     }
 }

@@ -17,6 +17,13 @@ const DEFICIT_CACHE_DURATION = 10 * 60 * 1000; // 10 minutos — déficit energ�
 const ITEMS_CACHE_KEY    = 'items_cache';      // JSON de las tarjetas
 const ITEMS_CACHE_TS_KEY = 'items_cache_ts';   // Timestamp del último cambio
 
+// ----------------------------------------------------
+// 💬 CACHÉ DE COMENTARIOS (localStorage + TTL fijo)
+// ----------------------------------------------------
+const COMMENTS_CACHE_KEY    = 'comments_cache';       // JSON de los comentarios
+const COMMENTS_CACHE_EXP_KEY = 'comments_cache_exp';  // Timestamp de expiración
+const COMMENTS_TTL           = 2 * 60 * 1000;         // 2 minutos
+
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -755,25 +762,41 @@ async function purgeOldComments(allComments) {
 }
 
 async function loadComments() {
-    const [commentsResponse, likesResponse] = await Promise.all([
-        supabase.from('comentarios').select('*').order('timestamp', { ascending: false }),
-        supabase.from('likes').select('comment_id').eq('user_web_id', userWebId)
-    ]);
+    // ── Likes: siempre desde Supabase (son datos personalizados por usuario) ──
+    const likesResponse = await supabase
+        .from('likes')
+        .select('comment_id')
+        .eq('user_web_id', userWebId);
 
-    if (commentsResponse.error) return DOMElements.commentsContainer.innerHTML = `<p style="text-align: center; color: #d90429;">❌ Error al cargar comentarios.</p>`;
-    
-    let allComments = commentsResponse.data;
     const userLikesMap = new Map();
     if (likesResponse.data) likesResponse.data.forEach(like => userLikesMap.set(like.comment_id, true));
 
-    // Limpiar comentarios con +30 días sin actividad (respuestas reinician el contador)
-    const purged = await purgeOldComments(allComments);
-    if (purged) {
-        // Recargar tras purga para mostrar estado actualizado
-        const { data } = await supabase.from('comentarios').select('*').order('timestamp', { ascending: false });
-        allComments = data || [];
+    // ── Comentarios: desde caché si el TTL no ha expirado ──
+    let allComments = null;
+    const cachedExp  = parseInt(localStorage.getItem(COMMENTS_CACHE_EXP_KEY) || '0');
+    const cachedJSON = localStorage.getItem(COMMENTS_CACHE_KEY);
+
+    if (cachedJSON && Date.now() < cachedExp) {
+        console.log('💾 Comentarios desde caché local.');
+        allComments = JSON.parse(cachedJSON);
+    } else {
+        console.log('🔄 Comentarios desde Supabase.');
+        const { data, error } = await supabase
+            .from('comentarios')
+            .select('*')
+            .order('timestamp', { ascending: false });
+
+        if (error) {
+            DOMElements.commentsContainer.innerHTML = `<p style="text-align: center; color: #d90429;">❌ Error al cargar comentarios.</p>`;
+            return;
+        }
+        allComments = data;
+        // Guardar en caché con nueva expiración
+        localStorage.setItem(COMMENTS_CACHE_KEY,    JSON.stringify(allComments));
+        localStorage.setItem(COMMENTS_CACHE_EXP_KEY, Date.now() + COMMENTS_TTL);
     }
-    
+
+    // ── Renderizar ──
     const principalComments = allComments.filter(c => c.parent_id === null);
     const repliesMap = allComments.reduce((map, comment) => {
         if (comment.parent_id !== null) { 
@@ -790,7 +813,6 @@ async function loadComments() {
     principalComments.forEach(comment => {
         const replies = repliesMap.get(comment.id);
         if (replies) { 
-            // Ahora buscamos dentro del nuevo layout
             const cardElement = document.querySelector(`.comment-item[data-comment-id="${comment.id}"]`);
             if (cardElement) {
                 const container = cardElement.querySelector(`.replies-container`);
@@ -820,7 +842,12 @@ async function publishComment() {
     if (name.length < 2 || text.length < 2) return alert("Datos insuficientes.");
     DOMElements.publishCommentBtn.disabled = true;
     const { error } = await supabase.from('comentarios').insert([{ name, text, likes_count: 0 }]);
-    if (!error) { DOMElements.commenterName.value = ''; DOMElements.commentText.value = ''; await loadComments(); } else { alert("❌ Error."); }
+    if (!error) {
+        // 🗑️ Invalidar caché para que el autor vea su comentario de inmediato
+        localStorage.removeItem(COMMENTS_CACHE_KEY);
+        localStorage.removeItem(COMMENTS_CACHE_EXP_KEY);
+        DOMElements.commenterName.value = ''; DOMElements.commentText.value = ''; await loadComments();
+    } else { alert("❌ Error."); }
     DOMElements.publishCommentBtn.disabled = false;
 }
 
@@ -830,7 +857,12 @@ async function handlePublishReply(event) {
     if (name.length < 2 || text.length < 2) return alert("Datos insuficientes.");
     event.target.disabled = true;
     const { error } = await supabase.from('comentarios').insert([{ name, text, parent_id: parentId, likes_count: 0 }]);
-    if (!error) { form.style.display = 'none'; await loadComments(); } else { alert("❌ Error."); }
+    if (!error) {
+        // 🗑️ Invalidar caché para que el autor vea su respuesta de inmediato
+        localStorage.removeItem(COMMENTS_CACHE_KEY);
+        localStorage.removeItem(COMMENTS_CACHE_EXP_KEY);
+        form.style.display = 'none'; await loadComments();
+    } else { alert("❌ Error."); }
     event.target.disabled = false;
 }
 

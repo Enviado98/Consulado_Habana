@@ -8,8 +8,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // ----------------------------------------------------
 // ⏱ CONFIGURACIÓN DE ACTUALIZACIÓN AUTOMÁTICA
 // ----------------------------------------------------
-const CACHE_DURATION        = 10 * 60 * 1000; // 10 minutos — tasas de cambio
-const DEFICIT_CACHE_DURATION = 10 * 60 * 1000; // 10 minutos — déficit energético
+const SCRAPER_TTL = 10 * 60 * 1000; // 10 minutos — ciclo de scraping (tasas + déficit)
 
 // ----------------------------------------------------
 // 💾 CACHÉ DE TARJETAS (localStorage + timestamp)
@@ -73,12 +72,9 @@ function getCardColor(id) {
 
 // Variables Globales
 let admin = false; 
-const ONE_HOUR = 3600000;
-const ONE_DAY = 24 * ONE_HOUR;
-const RECENT_THRESHOLD_MS = ONE_DAY; 
-const OLD_THRESHOLD_MS = 7 * ONE_DAY;
-const NEWS_SCROLL_SPEED_PX_PER_SEC = 50; 
-const TIME_PANEL_AUTOHIDE_MS = 3000; 
+const ONE_DAY = 24 * 3600000;
+const RECENT_THRESHOLD_MS = ONE_DAY;
+const TIME_PANEL_AUTOHIDE_MS = 3000;
 
 let currentData = [];
 let currentNews = []; 
@@ -106,15 +102,12 @@ const DOMElements = {
     publishCommentBtn: document.getElementById('publishCommentBtn'),
     adminControlsPanel: document.getElementById('adminControlsPanel'),
     statusMessage: document.getElementById('statusMessage'),
-    toggleAdminBtn: document.getElementById('toggleAdminBtn'), 
+    toggleAdminBtn: document.getElementById('toggleAdminBtn'),
     saveBtn: document.getElementById('saveBtn'),
-    addNewsBtn: document.getElementById('addNewsBtn'),
     deleteNewsBtn: document.getElementById('deleteNewsBtn'),
-    dynamicTickerStyles: document.getElementById('dynamicTickerStyles'),
     statusPanel: document.getElementById('statusPanel'),
     statusDataContainer: document.getElementById('statusDataContainer'),
     noticiasList: document.getElementById('noticias-list'),
-    noticiasAdminBtns: document.getElementById('noticiasAdminBtns'),
 };
 
 // ── NAVEGACIÓN POR TABS ───────────────────────────────────────
@@ -278,26 +271,21 @@ function isValidRate(divisa, value) {
     return n >= min && n <= max;
 }
 
-// Fetch con timeout, intenta dos proxies en orden
+// Fetch con timeout a través del proxy
 async function fetchViaProxy(targetUrl, timeoutMs = 12000) {
-    const proxies = [
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
-    ];
-    for (const url of proxies) {
-        try {
-            const res = await Promise.race([
-                fetch(url),
-                new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), timeoutMs))
-            ]);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const text = await res.text();
-            if (text.length < 500) throw new Error(`Respuesta muy corta`);
-            return text;
-        } catch (e) {
-            console.warn(`⚠️ Proxy falló (${url.slice(0,40)}...): ${e.message}`);
-        }
+    const url = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`;
+    try {
+        const res = await Promise.race([
+            fetch(url),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), timeoutMs))
+        ]);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (text.length < 500) throw new Error(`Respuesta muy corta`);
+        return text;
+    } catch (e) {
+        throw new Error(`Proxy falló: ${e.message}`);
     }
-    throw new Error("Todos los proxies fallaron");
 }
 
 // Extrae TODAS las divisas del __NEXT_DATA__ de El Toque
@@ -316,7 +304,7 @@ function extractRatesFromNextData(html) {
 async function fetchElToqueRates() {
     try {
         const lastUpdate = new Date(currentStatus.divisa_edited_at || 0).getTime();
-        if ((Date.now() - lastUpdate) < CACHE_DURATION) {
+        if ((Date.now() - lastUpdate) < SCRAPER_TTL) {
             console.log("💾 Tasas en caché.");
             return;
         }
@@ -389,7 +377,7 @@ function extractMWFromTitle(title) {
 async function fetchDeficitFromCubadebate() {
     try {
         const lastUpdate = new Date(currentStatus.deficit_edited_at || 0).getTime();
-        if ((Date.now() - lastUpdate) < DEFICIT_CACHE_DURATION) {
+        if ((Date.now() - lastUpdate) < SCRAPER_TTL) {
             console.log("💾 Déficit en caché.");
             return;
         }
@@ -462,9 +450,7 @@ function updateAdminUI(isAdmin) {
         disableEditing(); 
     }
     DOMElements.statusPanel.classList.toggle('admin-mode', isAdmin);
-    // Ocultar ticker también en modo edición
     if (DOMElements.newsTicker) DOMElements.newsTicker.style.display = isAdmin ? 'none' : '';
-    if (DOMElements.noticiasAdminBtns) DOMElements.noticiasAdminBtns.classList.toggle('visible', isAdmin);
     renderStatusPanel(currentStatus); 
 }
 
@@ -684,17 +670,6 @@ async function confirmDeleteNews() {
     loadNews();
 }
 
-async function addQuickNews() {
-    if (!admin) return;
-    const text = prompt("✍️ Escribe tu noticia:");
-    if (text && confirm("¿Publicar?")) {
-        await supabase.from('noticias').insert([{ text: text.trim() }]);
-        // 🗑️ Invalidar caché para que la noticia aparezca de inmediato
-        localStorage.removeItem(NEWS_CACHE_KEY);
-        localStorage.removeItem(NEWS_CACHE_EXP_KEY);
-        loadNews();
-    }
-}
 async function deleteNews() {
     // Si currentNews está vacío, recargar desde Supabase
     if (currentNews.length === 0) {
@@ -722,6 +697,8 @@ function formatCommentDate(timestamp) {
 }
 
 function createCommentHTML(comment, isLiked) {
+    const safeName = escapeHTML(comment.name);
+    const safeText = escapeHTML(comment.text);
     const color = generateColorByName(comment.name.toLowerCase());
     const likeClass = isLiked ? 'liked' : '';
     const itemClass = comment.parent_id ? 'comment-item reply-style' : 'comment-item';
@@ -731,17 +708,17 @@ function createCommentHTML(comment, isLiked) {
     return `
         <div class="${itemClass}" data-comment-id="${comment.id}">
             <div class="comment-main-row">
-                <div class="comment-avatar" style="background-color: ${color};" title="${comment.name}">
+                <div class="comment-avatar" style="background-color: ${color};" title="${safeName}">
                     ${initial}
                 </div>
 
                 <div class="comment-bubble">
                     <div class="comment-header">
-                        <span class="comment-name">${comment.name}</span>
+                        <span class="comment-name">${safeName}</span>
                         <span class="comment-date">${formatCommentDate(comment.timestamp)}</span>
                     </div>
                     
-                    <div class="comment-content">${comment.text}</div>
+                    <div class="comment-content">${safeText}</div>
                     
                     <div class="comment-actions">
                         <button class="like-button ${likeClass}" data-id="${comment.id}" title="Me gusta">
@@ -773,45 +750,6 @@ function drawReplies(container, replies, userLikesMap) {
         const isLiked = userLikesMap.get(reply.id) || false;
         container.insertAdjacentHTML('beforeend', createCommentHTML(reply, isLiked));
     });
-}
-
-async function purgeOldComments(allComments) {
-    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-    const now = Date.now();
-
-    // Agrupar respuestas por comentario padre
-    const repliesMap = new Map();
-    allComments.forEach(c => {
-        if (c.parent_id !== null) {
-            if (!repliesMap.has(c.parent_id)) repliesMap.set(c.parent_id, []);
-            repliesMap.get(c.parent_id).push(c);
-        }
-    });
-
-    const toDelete = []; // IDs a borrar (comentarios + sus respuestas)
-
-    allComments
-        .filter(c => c.parent_id === null) // solo raíces
-        .forEach(root => {
-            const replies = repliesMap.get(root.id) || [];
-            // Timestamp más reciente del hilo: el raíz o la última respuesta
-            const allTimestamps = [root, ...replies].map(c => new Date(c.timestamp).getTime());
-            const mostRecent = Math.max(...allTimestamps);
-
-            if (now - mostRecent > THIRTY_DAYS) {
-                // Todo el hilo tiene más de 30 días sin actividad → borrar
-                toDelete.push(root.id, ...replies.map(r => r.id));
-            }
-        });
-
-    if (toDelete.length > 0) {
-        // Borrar likes asociados primero (integridad referencial)
-        await supabase.from('likes').delete().in('comment_id', toDelete);
-        await supabase.from('comentarios').delete().in('id', toDelete);
-        console.log(`🗑 Purgados ${toDelete.length} comentarios con +30 días sin actividad.`);
-        return true; // indica que hubo cambios
-    }
-    return false;
 }
 
 async function loadComments() {
@@ -1176,4 +1114,3 @@ async function loadData() {
         }
     }
 }
-

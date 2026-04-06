@@ -1,4 +1,11 @@
 // ----------------------------------------------------
+// 📍 SCROLL RESTORATION — evita que el navegador
+//    restaure la posición de scroll entre recargas
+// ----------------------------------------------------
+history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+
+// ----------------------------------------------------
 // 🚨 CONFIGURACIÓN DE SUPABASE (BAAS) 🚨
 // ----------------------------------------------------
 const SUPABASE_URL = "https://mkvpjsvqjqeuniabjjwr.supabase.co"; 
@@ -1114,3 +1121,4 @@ async function loadData() {
         }
     }
 }
+

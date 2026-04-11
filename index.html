@@ -193,36 +193,6 @@
 
   <div class="container" id="contenedor"></div>
 
-<!-- ═══ SEO DARK SECTION ═══ -->
-<div class="seo-dark-wrap" aria-label="Acerca de ConsulHabana">
-
-  <!-- Ola SVG superior -->
-  <div class="seo-wave-top">
-    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,40 C180,80 360,0 540,40 C720,80 900,0 1080,40 C1260,80 1380,20 1440,40 L1440,80 L0,80 Z" fill="#0d0d0d"/>
-    </svg>
-  </div>
-
-  <!-- Zona negra -->
-  <div class="seo-dark-body">
-    <section class="seo-neu-card" aria-label="Información sobre el Consulado de España en La Habana">
-      <p>
-        <strong>ConsulHabana</strong> es una herramienta comunitaria de seguimiento en tiempo real del
-        <strong>Consulado General de España en La Habana</strong>. Aquí encontrarás el estado actualizado
-        de citas para <strong>pasaportes</strong>, <strong>legalizaciones</strong>,
-        <strong>LMD (Libro de Matrícula de Defunción)</strong>, <strong>registros civiles</strong>,
-        <strong>NIE</strong> y <strong>visados</strong>.
-      </p>
-      <p>
-        También puedes consultar el directorio de <strong>gestores consulares verificados</strong> que pueden
-        ayudarte a tramitar tu documentación ante el consulado desde Cuba o desde España.
-        La comunidad publica reportes y comentarios en tiempo real sobre la disponibilidad de turnos.
-      </p>
-    </section>
-  </div>
-
-</div>
-<!-- ═══ / SEO DARK SECTION ═══ -->
 </div>
 
 <!-- TAB 2: NOTICIAS -->
@@ -463,6 +433,62 @@
     </div><!-- /gc-form-inner -->
   </div><!-- /gc-form-sheet -->
 </div>
+
+<!-- ═══ ABOUT BAR + MODAL ═══ -->
+<div class="about-dark-bar">
+  <div class="about-wave-top">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,60 L0,60 Z" fill="#0d0d0d"/>
+    </svg>
+  </div>
+  <div class="about-dark-body">
+    <button class="about-trigger" id="aboutTriggerBtn" aria-label="Acerca de ConsulHabana">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="8"/>
+        <line x1="12" y1="12" x2="12" y2="16"/>
+      </svg>
+      Acerca de
+    </button>
+  </div>
+</div>
+
+<!-- Modal Acerca de -->
+<div class="about-modal-overlay" id="aboutModalOverlay" aria-modal="true" role="dialog" aria-label="Acerca de ConsulHabana">
+  <div class="about-modal-card">
+    <button class="about-modal-close" id="aboutModalClose" aria-label="Cerrar">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+        <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="about-modal-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="8"/>
+        <line x1="12" y1="12" x2="12" y2="16"/>
+      </svg>
+    </div>
+    <h3 class="about-modal-title">Acerca de ConsulHabana</h3>
+    <div class="about-modal-body">
+      <p>
+        <strong>ConsulHabana</strong> es una herramienta comunitaria de seguimiento en tiempo real del
+        <strong>Consulado General de España en La Habana</strong>. Aquí encontrarás el estado actualizado
+        de citas para <strong>pasaportes</strong>, <strong>legalizaciones</strong>,
+        <strong>LMD</strong>, <strong>registros civiles</strong>, <strong>NIE</strong> y <strong>visados</strong>.
+      </p>
+      <p>
+        También puedes consultar el directorio de <strong>gestores consulares verificados</strong> que pueden
+        ayudarte a tramitar tu documentación ante el consulado desde Cuba o desde España.
+        La comunidad publica reportes y comentarios en tiempo real sobre la disponibilidad de turnos.
+      </p>
+      <p class="about-modal-disclaimer">
+        Web no oficial · Sin afiliación con el Consulado de España · © 2026 ConsulHabana
+      </p>
+    </div>
+  </div>
+</div>
+<!-- ═══ / ABOUT BAR + MODAL ═══ -->
+
 </main>
 <!-- BARRA INFERIOR + FOOTER -->
 <div class="tab-bar-wrap">
@@ -517,6 +543,33 @@
 </div>
 </div>
 
+
+<script>
+(function(){
+  const btn    = document.getElementById('aboutTriggerBtn');
+  const overlay = document.getElementById('aboutModalOverlay');
+  const closeBtn = document.getElementById('aboutModalClose');
+  if (!btn || !overlay) return;
+
+  function openModal() {
+    overlay.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    overlay.classList.remove('is-open');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closeModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+})();
+</script>
 <script type="module" src="script.js"></script>
 </body>
 </html>

@@ -253,7 +253,7 @@ body.admin-mode .news-ticker-container { display:none; }
 .tab-view.active.no-anim { animation:none; }
 
 /* TAB 1 - CALENDARIO */
-#view-calendario { padding:20px 16px 16px; max-width:900px; margin:0 auto; }
+#view-calendario { padding:20px 16px 0; max-width:900px; margin:0 auto; }
 
 .login-controls {
   background:var(--bg-card); border:1px solid rgba(255,255,255,0.55);

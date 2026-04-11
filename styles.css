@@ -1377,19 +1377,65 @@ input::placeholder, textarea::placeholder { color:var(--t4); }
 .gc-form-success p  { font-size: 0.78rem; color: var(--t3); line-height: 1.6; }
 
 
-/* ═══ SEO INTRO BLOCK (contenido estático indexable) ═══ */
-.seo-intro {
-  padding: 14px 16px 6px;
-  max-width: 680px;
+
+
+/* ═══════════════════════════════════════════
+   SEO DARK SECTION — Ola + neumorfismo oscuro
+   ═══════════════════════════════════════════ */
+
+.seo-dark-wrap {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% + 32px); /* compensa padding 16px de cada lado */
+  margin-top: 16px;
+  margin-left: -16px;
+  margin-right: -16px;
+  margin-bottom: calc(-1 * (var(--wrap-h, 80px) + 36px)); /* compensa padding-bottom del tab */
+}
+
+/* ── Ola SVG ── */
+.seo-wave-top {
+  display: block;
+  line-height: 0;
+  margin-bottom: -2px; /* elimina gap entre svg y fondo negro */
+}
+.seo-wave-top svg {
+  width: 100%;
+  height: 56px;
+  display: block;
+}
+
+/* ── Zona negra ── */
+.seo-dark-body {
+  background: #0d0d0d;
+  padding: 20px 16px 32px;
+}
+
+/* ── Card neumórfica oscura ── */
+.seo-neu-card {
+  background: #131313;
+  border-radius: 18px;
+  padding: 20px 18px;
+  box-shadow:
+    4px 4px 12px rgba(0, 0, 0, 0.7),
+    -3px -3px 8px rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+  max-width: 640px;
   margin: 0 auto;
 }
-.seo-intro-inner p {
+
+.seo-neu-card p {
   font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--t3, #8e8e93);
-  margin-bottom: 8px;
+  line-height: 1.7;
+  color: #8a8a8e;
+  margin-bottom: 12px;
+  font-family: var(--f, -apple-system, sans-serif);
 }
-.seo-intro-inner strong {
-  color: var(--t2, #3a3a3c);
+.seo-neu-card p:last-child {
+  margin-bottom: 0;
+}
+
+.seo-neu-card strong {
+  color: #e0e0e5;
   font-weight: 500;
 }

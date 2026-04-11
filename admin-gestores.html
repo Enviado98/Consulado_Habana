@@ -3,11 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Panel de administración de gestores — ConsulHabana.">
+<!-- canonical omitido en páginas noindex —— no debe indexarse ni consolidarse -->
 <title>Admin · Gestores · ConsulHabana</title>
-<link rel="icon" type="image/png" sizes="96x96" href="https://raw.githubusercontent.com/Enviado98/Consulado_Habana/main/images.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap');
+/* Google Fonts cargado desde <head>, no desde @import — evita bloqueo de render */
 
 :root {
   --bg:      #e8e8ed;

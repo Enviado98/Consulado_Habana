@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin-gestores.html
+
+Sitemap: https://consulado-habana.onrender.com/sitemap.xml

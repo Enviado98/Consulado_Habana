@@ -490,7 +490,7 @@
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) closePopup(overlay, false);
       });
-    }, 1800);
+    }, 5000); // Aumentado a 5 s — cumple política Google de interstitials intrusivos
   }
 
   if (document.readyState === 'loading') {

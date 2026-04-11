@@ -253,7 +253,7 @@ body.admin-mode .news-ticker-container { display:none; }
 .tab-view.active.no-anim { animation:none; }
 
 /* TAB 1 - CALENDARIO */
-#view-calendario { padding:20px 16px calc(var(--wrap-h) + 36px); max-width:900px; margin:0 auto; }
+#view-calendario { padding:20px 16px 16px; max-width:900px; margin:0 auto; }
 
 .login-controls {
   background:var(--bg-card); border:1px solid rgba(255,255,255,0.55);
@@ -1390,7 +1390,7 @@ input::placeholder, textarea::placeholder { color:var(--t4); }
   margin-top: 16px;
   margin-left: -16px;
   margin-right: -16px;
-  margin-bottom: calc(-1 * (var(--wrap-h, 80px) + 36px)); /* compensa padding-bottom del tab */
+
 }
 
 /* ── Ola SVG ── */
@@ -1450,6 +1450,7 @@ input::placeholder, textarea::placeholder { color:var(--t4); }
   width: 100%;
   display: flex;
   flex-direction: column;
+  margin-top: 4px;
 }
 
 .about-wave-top {
@@ -1468,7 +1469,7 @@ input::placeholder, textarea::placeholder { color:var(--t4); }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px 16px 20px;
+  padding: 14px 16px calc(var(--wrap-h, 81px) + 20px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ── Botón trigger ── */
